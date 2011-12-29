@@ -1,0 +1,19 @@
+Knock PHP
+---------
+
+What is this?
+
+This is a web frontend for the port knocking service fwknop (http://cipherdyne.org/fwknop/).
+It let you shoot a port knocking request to any server you configured and ask this server to
+open a certain port for you are any given IP address.
+
+If you like to know more about port knocking, checkout wikipedia
+(http://en.wikipedia.org/wiki/Port_knocking).
+
+
+Requirements
+
+You need to have a
+- web server like Apache, Nginx, IIS, or alike
+- PHP 5.3.x running as SAPI, FastCGI, or CGI
+- fwknop client 2.x

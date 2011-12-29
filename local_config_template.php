@@ -1,0 +1,142 @@
+<?php
+/**
+ * This template configuration file should be copy to
+ * local_config.php. Afterwards it needs to be configured.
+ */
+
+
+error_reporting( E_ALL | E_STRICT );
+
+
+#############################################################################
+# SETUP
+#############################################################################
+/**
+ * This is the absolute URL path used in a browser to
+ * reach your Knock installation.
+ *
+ * For security reasons, it is NOT a good idea to put your
+ * whole Knock directory into your document root of your
+ * web server. Instead you should put it somewhere else
+ * and use an alias to Knock's htdocs folder.
+ *
+ * Example for your Apache configuration:
+ * "Alias /knock		/opt/knock/htdocs"
+ * For more information visit
+ * http://httpd.apache.org/docs/2.2/mod/mod_alias.html#alias
+ *
+ * Default: '/knock'
+ */
+$PATH_APPLICATION = '/knock';
+
+
+/**
+ * Limit all web request to use the secure HTTPS protocol.
+ *
+ * If this is set to true, Knock will not work with HTTP
+ * anymore, but only with HTTPS. If set to false, the
+ * user decides which protocol he wants to use.
+ *
+ * Default: true
+ */
+$USE_HTTPS_ONLY = true;
+
+
+/**
+ * The fwknop command line executable
+ *
+ * *nix:
+ * Try to use "which fwknop" to find out the path
+ *
+ * Windows:
+ * Try to find a file called "fwknopclient.exe".
+ *
+ * Default: '/usr/bin/fwknop'
+ */
+$FWKNOP_CLI = '/usr/bin/fwknop';
+
+
+/**
+ * Encryption key used to connect to server.
+ *
+ * If this parameter is set to null, it will request the user to
+ * type in decryption key.
+ *
+ * Default: null
+ */
+$ENCRYPTION_KEY = null;
+
+
+/**
+ * Define default or static destinations
+ *
+ * If this parameter is set to null, it will allow the user to
+ * type in an IP address or hostname as destination.
+ *
+ * If set to any string value like '127.0.0.1' or 'localhost.com',
+ * the destination is static and cannot be changed by the user.
+ *
+ * If set to an array like
+ * array( 'merkur' => '10.0.0.1', 'mars' => '10.0.0.2', 'venus' => '10.0.0.3' );
+ * the user will be able to select one of the servers.
+ *
+ * Default: null
+ */
+$DESTINATION = null;
+
+
+/**
+ * Provide a list of ports and protocols to access on a remote computer running
+ * fwknopd. The format of this list is '<proto>/<port>...<proto>/<port>,
+ * e.g. "tcp/22,udp/53".
+ * NOTE: The vast majority of usages for fwknop require this argument, but sending
+ * full commands with the --Server-cmd argument via an SPA packet to be executed by
+ * fwknopd does not require this argument.
+ *
+ * If this parameter is set to null, it will allow the user to
+ * type in a list of ports to open.
+ *
+ * Default: tcp/22
+ */
+$ACCESS_PORT_LIST = 'tcp/22';
+
+
+/**
+ * Specify the port number where fwknopd accepts packets
+ * via libpcap or ulogd pcap writer. By default fwknopd looks for
+ * authorization packets over UDP port 62201.
+ *
+ * If this parameter is set to null, it will allow the user to
+ * type in a port number.
+ *
+ * Default: 62201
+ */
+$SERVER_PORT = 62201;
+
+
+
+#############################################################################
+###	DEBUGGING AND ERROR CONFIGURATION
+#############################################################################
+/**
+ * This file will be used to log errors. It has to be accessible
+ * and writable to your webserver user. You can put it anywhere
+ * in your filesystem, but you have to create it on yourself.
+ *
+ * Usually this file is within the Knock folder. You can use the
+ * variable $PATH_FS_APPLICATION to get your Knock filesystem path.
+ *
+ * Default: $PATH_FS_APPLICATION.'/error.log'
+ */
+$ERRORS_LOG = $PATH_FS_APPLICATION.'/error.log';
+
+
+/**
+ * This option should only be used for testing and debugging purposes.
+ * Do not activate on production environment.
+ *
+ * Default: false
+ */
+$ERRORS_VERBOSE = false;
+
+?>

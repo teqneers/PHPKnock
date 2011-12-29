@@ -1,0 +1,365 @@
+/**
+ * Installer specialized design sepcifications
+ *
+ * @author		Timo Buhmann <buhmann@teqneers.de>
+ * @author		Oliver Mueller <mueller@teqneers.de>
+ * @copyright	2007/08 TEQneers GmbH & Co. KG
+ * @package		sofi
+ * @subpackage	install
+ * @version		$Id: install.css 19737 2011-05-04 12:21:00Z oliver $
+ */
+
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	min-width:720px; /* Prevent content from becoming unreachable in Gecko */
+	background-color: #f1f1f1;
+	margin: 0;
+	font-family: verdana, sans-serif;
+	font-size: 11px;
+	font: normal 69.0%;
+}
+
+div {
+	color: #000000;
+	font-size: 12px;
+	text-align: left;
+}
+
+/* position:absolute for all browsers - the whole page scrolls */
+div#headerwrap {
+	position: absolute;
+	width: 100%;
+	height: 50px;
+}
+
+/* position:fixed for modern browsers - header and footer do not scroll */
+body>div#headerwrap {
+	position: fixed;
+}
+
+div#header {
+	height: 50px;
+	margin: 0 auto;
+}
+
+/* set a left margin to compensate for IE/Win always making room for a scrollbar */
+div#middlewrap {
+/* set left margin and bottom padding for IE5/Win */
+	padding: 50px 0 0 0;
+	margin-left: 0;
+/* set left margin and bottom padding for others */
+	voice-family: "\"}\"";
+	voice-family: inherit;
+	padding-bottom: 50px;
+}
+
+/* set left margin for modern browsers */
+body>div#middlewrap {
+	/* margin-top: -12px; */
+}
+
+div#middle {
+	margin: 0 auto;
+}
+
+div#content {
+	padding: 0 10px;
+	margin: 20px 10%;
+}
+
+/* no positioning for IE5/Win - the whole page scrolls */
+div#footerwrap {
+	width: 100%;
+	p\osition: absolute;
+	bottom: 0;
+	left: 0;
+	height: 50px;
+}
+
+body>div#footerwrap {
+	position:fixed;
+}
+
+div#footer {
+	height: 50px;
+	margin: 0 auto;
+	display: block;
+	text-align: center;
+	background-color: #003967;
+	color: white;
+	font-size: 12px;
+	border-top: 2px solid #cccccc;
+}
+
+.groupBox {
+	border: 1px solid #666666;
+	background-color: #ffffff;
+	margin-top: -2px;
+	margin-left: -2px;
+	padding: 20px 10px;
+}
+
+.legend {
+	position: relative;
+	display: block;
+	margin: 50px -10px 10px -10px;
+	background-color: #cccccc;
+	font-size: 14px;
+	color: #333333;
+	line-height: 30px;
+	padding-left: 10px;
+}
+
+.headline {
+	border: 1px solid #666666;
+	border-bottom: 0;
+	background-color: #cccccc;
+	margin-left: -2px;
+	padding: 10px;
+	height: 30px;
+	font-size: 16px;
+	line-height: 30px;
+	letter-spacing: 2px;
+	text-align: center;
+}
+
+
+.failed,
+.notice,
+.success {
+/*	font-weight: bold;*/
+/*	text-align: center;*/
+	margin-bottom: 25px;
+	padding: 6px;
+	line-height: 20px;
+	letter-spacing: 1.5px;
+}
+
+.failed {
+	background-color: #ffcccc;
+	border: 1px solid #990000;
+	color: #990000;
+}
+
+.notice {
+	background-color: #ffddbb;
+	border: 1px solid #ff9933;
+	color: #ff9933;
+}
+
+.success {
+	background-color: #ccff99;
+	border: 1px solid #009900;
+	color: #009900;
+}
+
+.red {
+	background-color: #cc0000;
+	border-bottom: 1px solid #000000;
+	color: #ffffff;
+}
+
+.orange {
+	background-color: orange;
+	border-bottom: 1px solid #000000;
+	color: #ffffff;
+}
+
+.green {
+	background-color: #00cc00;
+	border-bottom: 1px solid #000000;
+	color: #ffffff;
+}
+
+.white {
+	background-color: #ffffaa;
+	border-bottom: 1px solid #000000;
+	color: #000000;
+}
+
+a.head {
+	color: #FFFFFF;
+	text-decoration: underline;
+}
+
+/* check blocks */
+div.groupHeader {
+	font-weight: bold;
+	letter-spacing: 1px;
+	background-color: #003967;
+	color: #ffffff;
+	font-size: 14px;
+	line-height: 30px;
+	text-align: center;
+	margin: 10px -10px;
+	margin-top: 40px;
+	height: 30px;
+}
+
+div.errorHeader,
+div.warningHeader,
+div.infoHeader,
+div.noticeHeader,
+div.okHeader {
+	font-weight: bold;
+	background-color: #f1f1f1;
+	border: 1px solid #999999;
+	border-bottom: 0;
+	margin-top: 15px;
+	margin-left: 20px;
+	height: 20px;
+	line-height: 20px;
+}
+
+div.errorHeader img,
+div.warningHeader img,
+div.infoHeader img,
+div.noticeHeader img,
+div.okHeader img {
+	margin-left: -20px;
+	margin-top: -3px;
+	margin-right: 12px;
+}
+
+div.errorHeader>/**/img,
+div.warningHeader>/**/img,
+div.infoHeader>/**/img,
+div.noticeHeader>/**/img,
+div.okHeader>/**/img {
+	margin-top: -12px;
+}
+
+div.noticeHeader {
+	background-color: #d3d9dc;
+}
+
+div.infoHeader {
+	background-color: #ffcc33;
+}
+
+div.warningHeader {
+	background-color: #ff9933;
+}
+
+div.errorHeader {
+	color: white;
+	background-color: #cc0000;
+}
+
+div.description {
+	background-color: #f1f1f1;
+	border: 1px solid #999999;
+	border-top: 0;
+	margin: 0;
+	margin-left: 20px;
+	padding: 5px 10px;
+	font-size: 10px;
+	font-weight: normal;
+	font-style: italic;
+	color: #666666;
+}
+
+div.current {
+	border: 1px solid #999999;
+	border-top: 0;
+	margin: 0;
+	margin-left: 20px;
+	padding: 10px;
+	font-size: 11px;
+	font-weight: normal;
+	color: #333333;
+}
+
+div.noText {
+	border-bottom: 1px solid #999999;
+}
+
+/* check tables */
+.checkTable {
+	border: 1px solid #333333;
+}
+
+.checkTable th.current {
+	background-color: #333333;
+	color: #f1f1f1;
+	padding: 2px 5px;
+	padding-right: 20px;
+	font-size: 9px;
+	font-weight: normal;
+	text-align: left;
+}
+
+.checkTable td.current {
+	padding: 2px 5px;
+	padding-right: 15px;
+	font-size: 10px;
+}
+
+.checkTable td.currentError {
+	padding: 2px 5px;
+	padding-right: 20px;
+	font-size: 10px;
+	color: #cc0000;
+}
+
+
+/* top menu definitions */
+.menu {
+	height: 50px;
+	border-bottom: 2px solid #cccccc;
+}
+
+.menu tr td {
+	border-bottom: 1px solid #666666;
+	background-color: #003967;
+	color: #ffffff;
+	font-size: 12px;
+}
+
+.menu tr td.left {
+	text-align: left;
+	padding-left: 10px;
+	width: 30%;
+}
+
+.menu tr td.middle {
+	text-align: center;
+	padding-left: 10px;
+	padding-right: 10px;
+	font-size: 16px;
+	letter-spacing: 2px;
+	width: 40%;
+}
+
+.menu tr td.right {
+	text-align: right;
+	padding-right: 10px;
+	width: 30%;
+}
+
+
+/**
+ * TEQlibs form show styles if direct html output is used
+ */
+.tqForm tr td {
+	padding: 3px;
+	min-width: 150px;
+	vertical-align: top;
+}
+
+input + br + span {
+	color: red;
+}
+
+.button {
+	margin-top: 10px;
+	margin-left: 159px;
+}
+
+label:after {
+ 	content: ": ";
+}
