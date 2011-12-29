@@ -1,3 +1,15 @@
 .idea
-local_config.php
 tmp/*
+
+# Ignore all the configuration files
+local_config.php
+
+# Keep all the .gitkeep files
+!.gitkeep
+
+# Ignore common crap
+.DS_Store
+.netbeans
+Thumbs.db
+*.swp
+.vimrc
