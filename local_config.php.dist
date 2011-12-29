@@ -4,7 +4,6 @@
  * local_config.php. Afterwards it needs to be configured.
  */
 
-
 error_reporting( E_ALL | E_STRICT );
 
 
@@ -13,27 +12,27 @@ error_reporting( E_ALL | E_STRICT );
 #############################################################################
 /**
  * This is the absolute URL path used in a browser to
- * reach your Knock installation.
+ * reach your PHPKnock installation.
  *
  * For security reasons, it is NOT a good idea to put your
- * whole Knock directory into your document root of your
+ * whole PHPKnock directory into your document root of your
  * web server. Instead you should put it somewhere else
- * and use an alias to Knock's htdocs folder.
+ * and use an alias to PHPKnock's htdocs folder.
  *
  * Example for your Apache configuration:
- * "Alias /knock		/opt/knock/htdocs"
+ * "Alias /phpknock		/opt/phpknock/htdocs"
  * For more information visit
  * http://httpd.apache.org/docs/2.2/mod/mod_alias.html#alias
  *
- * Default: '/knock'
+ * Default: '/phpknock'
  */
-$PATH_APPLICATION = '/knock';
+$PATH_APPLICATION = '/phpknock';
 
 
 /**
  * Limit all web request to use the secure HTTPS protocol.
  *
- * If this is set to true, Knock will not work with HTTP
+ * If this is set to true, PHPKnock will not work with HTTP
  * anymore, but only with HTTPS. If set to false, the
  * user decides which protocol he wants to use.
  *
@@ -123,8 +122,8 @@ $SERVER_PORT = 62201;
  * and writable to your webserver user. You can put it anywhere
  * in your filesystem, but you have to create it on yourself.
  *
- * Usually this file is within the Knock folder. You can use the
- * variable $PATH_FS_APPLICATION to get your Knock filesystem path.
+ * Usually this file is within the PHPKnock folder. You can use the
+ * variable $PATH_FS_APPLICATION to get your PHPKnock filesystem path.
  *
  * Default: $PATH_FS_APPLICATION.'/error.log'
  */
