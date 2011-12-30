@@ -1,9 +1,11 @@
 PHPKnock
 ========
 
-***PHPKnock*** is a web frontend for the port knocking service [fwknop](http://cipherdyne.org/fwknop/) . It let you shoot a port knocking request to any server you configured and ask this server to open a certain port for you are any given IP address.
+***PHPKnock*** is a web frontend for the port knocking service [fwknop](http://cipherdyne.org/fwknop/) . It let you shoot a Single Packet Authorization (SPA) or a port knocking request to any server you configured and ask this server to open a certain port for you or any given IP address.
 
-If you like to know more about port knocking, checkout [wikipedia](http://en.wikipedia.org/wiki/Port_knocking).
+What is this web frontend good for? You can use it to support any OS or platform that has a browser. E.g. you can install it on an intranet server to open up other servers in your extranet or internet. Another use-case could be to install it in your extranet, so your support staff has the ability to send SPA or port knocking requests from home or somewhere else without installing fwknop to their computer.
+
+If you like to know more about [port knocking](http://en.wikipedia.org/wiki/Port_knocking) or [Single Packet Authorization](http://en.wikipedia.org/wiki/Single_Packet_Authorization) checkout Wikipedia.
 
 
 Requirements
@@ -16,7 +18,7 @@ Requirements
 
 Installation
 ------------
-Download or clone **PHPKnock** to your webserver. You can put **PHPKnock** into your document root, but for security reasons, it is NOT a good idea to put your whole Knock directory into your document root of your web server. Instead you should put it somewhere else and use an alias to **PHPKnock**'s htdocs folder.
+Download or clone **PHPKnock** to your web server. You can put **PHPKnock** into your document root, but for security reasons, it is NOT a good idea to put your whole Knock directory into your document root of your web server. Instead you should put it somewhere else and use an alias to **PHPKnock**'s htdocs folder.
 
 Example for your Apache configuration:
 <pre>"Alias /phpknock		/opt/phpknock/htdocs"</pre>
@@ -31,7 +33,7 @@ Copy template configuration file and change configuration as needed:
 # vi phpknock/local_config.php
 </pre>
 
-Make temporary directory writable for webserver user:
+Make temporary directory writable for web server user:
 
 <pre>
 # chown www-data:www-data phpknock/tmp

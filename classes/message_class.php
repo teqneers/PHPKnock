@@ -1,13 +1,33 @@
 <?php
+/*
+ * Copyright (C) 2012 by TEQneers GmbH & Co. KG
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 /**
  * Message Class
  *
- * @author		Oliver Mueller <mueller@teqneers.de>
- * @copyright	Copyright (C) 2003-2012 TEQneers GmbH & Co. KG. All rights reserved.
- * @package		Knock
+ * @author		Oliver G. Mueller <mueller@teqneers.de>
+ * @package		PHPKnock
  * @subpackage	Classes
- * @version		$Revision: 17231 $
- * @internal	$Id: message_class.php 17231 2010-12-07 14:41:44Z philipp $
+ * @copyright	Copyright (C) 2003-2012 TEQneers GmbH & Co. KG. All rights reserved
  */
 
 /**
@@ -16,7 +36,7 @@
  * Messages, Warning and Errors can be displayed,
  * added or cleared.
  *
- * @package		Knock
+ * @package		PHPKnock
  * @subpackage	Classes
  */
 class Message {
