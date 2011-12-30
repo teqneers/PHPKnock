@@ -23,6 +23,10 @@
 
 /**
  * Main application entry script
+ * 
+ * This script will display all necessary form elements to configure
+ * port knocking or Single Package Authorization SPA. It will trigger
+ * fwknop client on console to actually initiate port knocking.
  *
  * @author		Oliver G. Mueller <mueller@teqneers.de>
  * @package		PHPKnock
