@@ -47,9 +47,15 @@ $USE_HTTPS_ONLY			= true;
 
 $ERRORS_VERBOSE			= false;
 
-// overide configuration values
-include '../local_config.php';
-require '../functions.php';
+$ENCRYPTION_KEY			= null;
+$FWKNOP_CLI				= '/usr/bin/fwknop';
+$SERVER_PORT 			= 62201;
+$ACCESS_PORT_LIST		= 'tcp/22';
+$DESTINATION			= null;
+
+// override configuration values
+include __DIR__.'/../local_config.php';
+require __DIR__.'/../functions.php';
 
 
 #############################################################################
@@ -111,43 +117,47 @@ function form() {
 	$form	= new Form( 'knock' );
 
 	if( is_array($DESTINATION) ) {
-		/* @var $element FormElementDropdown */
-		$element	= $form->factory( 'Dropdown', 'destination', 'Server', $DESTINATION );
+		/** @var $element FormElementDropdown */
+		$element	= $form->factory( 'Dropdown', 'destination', 'Server', $DESTINATION )
+			->setMaximumSize( 10 )
+			->setIsMultiple( true )
+			->setNotNull();
 	} elseif ( $DESTINATION === null ) {
 
-		/* @var $element FormElementText */
-		$element	= $form->factory( 'Text', 'destination', 'Server IP/Hostname' );
+		/** @var $element FormElementText */
+		$element	= $form->factory( 'Text', 'destination', 'Server IP/Hostname' )
+			->setHint( 'You may enter multiple server IPs or hostnames separated by a semicolon.' )
+			->setNotNull();
 	}
-	$element->setNotNull();
 
 
 	if( $SERVER_PORT === null ) {
-		/* @var $element ElementInteger */
+		/** @var $element FormElementInteger */
 		$element	= $form->factory( 'Integer', 'serverPort', 'Server port' );
 		$element->setMinimum( 1 );
 		$element->setMaximum( 65535 );
 	}
 
 	if( $ACCESS_PORT_LIST === null ) {
-		/* @var $element FormElementText */
+		/** @var $element FormElementText */
 		$element	= $form->factory( 'Text', 'accessPortList', 'Access port list' )
 			->setHint( 'Provide a list of ports and protocols to access on a remote computer. The format of this list is "<proto>/<port>...<proto>/<port>", e.g. "tcp/22,udp/53".' )
 			->setValidRegExp( '(^(tcp|udp)/[0-9]+( *, *(tcp|udp)/[0-9]+)*$)i' );
 	}
 
 	if( $ENCRYPTION_KEY === null ) {
-		/* @var $element FormElementPassword */
+		/** @var $element FormElementPassword */
 		$element	= $form->factory( 'Password', 'encryptionKey', 'Encryption key' );
 	}
 
-	/* @var $element FormElementText */
+	/** @var $element FormElementText */
 	$element	= $form->factory( 'Text', 'allowIp', 'Source IP' )
 		->setDefaultValue( $_SERVER['REMOTE_ADDR'] )
 		->setValidRegExp( '(^(?P<first>[1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.(?P<second>[1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.(?P<third>[1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.(?P<fourth>[1-9]?\d|1\d\d|2[0-4]\d|25[0-5])$)' )
 		->setNotNull();
 
 
-	/* @var $element FormElementHidden */
+	/** @var $element FormElementHidden */
 	$element	= $form->factory( 'Hidden', 'doKnock' )
 		->setDefaultValue( 1 );
 
@@ -196,45 +206,66 @@ if( !$error && $form->element( 'doKnock' )->value() == 1 && $form->validate() ) 
 	$execute	= array( 'echo '.escapeshellarg( escapeshellcmd( $encryptionKey ) ).' | '.$FWKNOP_CLI );
 
 	// we need to set home dir in order to write some files needed by fwknop
-	$execute[]	= '--Home-dir '.PATH_FS_APPLICATION.'/tmp';
+	$execute['Home-dir']	= '--Home-dir '.PATH_FS_APPLICATION.'/tmp';
 	
 	if( $SERVER_PORT !== null ) {
-		$execute[]	= '--Server-port '.$SERVER_PORT;
+		$execute['Server-port']	= '--Server-port '.$SERVER_PORT;
 	} elseif ( !$form->element( 'serverPort' )->isEmpty() ) {
-		$execute[]	= '--Server-port '.escapeshellarg( escapeshellcmd( $form->element( 'serverPort' )->dbValue() ) );
+		$execute['Server-port']	= '--Server-port '.escapeshellarg( escapeshellcmd( $form->element( 'serverPort' )->dbValue() ) );
 	}
 
 	if( $ACCESS_PORT_LIST !== null ) {
-		$execute[]	= '-A '.escapeshellarg( $ACCESS_PORT_LIST );
+		$execute['A']	= '-A '.escapeshellarg( $ACCESS_PORT_LIST );
 	} elseif ( !$form->element( 'accessPortList' )->isEmpty() ) {
-		$execute[]	= '-A '.escapeshellarg( escapeshellcmd( str_replace( ' ', '', $form->element( 'accessPortList' )->dbValue() ) ) );
+		$execute['A']	= '-A '.escapeshellarg( escapeshellcmd( str_replace( ' ', '', $form->element( 'accessPortList' )->dbValue() ) ) );
 	}
 
+	$execute['a']	= '-a '.escapeshellarg( escapeshellcmd( $form->element( 'allowIp' )->dbValue() ) );
+
+	$hosts	= array();
 	if( is_string($DESTINATION) ) {
-		$execute[]	= '-D '.$DESTINATION;
+		// destination is given as fix value by configuration
+		if( strpos($DESTINATION, ';') === false ) {
+			$hosts	= array( $DESTINATION );
+		} else {
+			$hosts	= array_map( 'trim', explode( ';', $DESTINATION) );
+		}
 	} elseif ( !$form->element( 'destination' )->isEmpty() ) {
-		if( is_array($DESTINATION) && array_key_exists( $form->element( 'destination' )->dbValue(), $DESTINATION ) ) {
-			$execute[]	= '-D '.escapeshellarg( escapeshellcmd( $DESTINATION[ $form->element( 'destination' )->dbValue() ] ) );
-		} elseif( $DESTINATION === null ) {
-			$execute[]	= '-D '.escapeshellarg( escapeshellcmd( $form->element( 'destination' )->dbValue() ) );
+		$value	= $form->element( 'destination' )->dbValue();
+		if( is_array($DESTINATION) ) {
+			// destinations are in dropdown
+			$hosts	= array();
+			foreach( $value as $key ) {
+				$hosts[]	= $DESTINATION[ $key ];
+			}
+		} else {
+			// destinations entered in a textfield
+			if( strpos($value, ';') === false ) {
+				$hosts	= array( $value );
+			} else {
+				$hosts	= array_map( 'trim', explode( ';', $value) );
+			}
 		}
 	}
 
-	$execute[]	= '-a '.escapeshellarg( escapeshellcmd( $form->element( 'allowIp' )->dbValue() ) );
+	foreach( $hosts as $target ) {
+		$execute['D']	= '-D '.escapeshellarg( escapeshellcmd( $target ) );
 
-	// execute command on CLI and check return code
-	// forward errors to stdout in order to see them in output
-	$cmd	= implode( ' ', $execute ).' 2>&1';	
-	$last	= exec( $cmd, $output, $return );
+		// execute command on CLI and check return code
+		// forward errors to stdout in order to see them in output
+		$cmd	= implode( ' ', $execute ).' 2>&1';
+		$last	= exec( $cmd, $output, $return );
 
-	if( $return === 0 ) {
-		$message->addMessage( 'Knock send successfully. With correct settings, you should be able to access the server for a limited time now.' );
-	} else {
-		$message->addError( 'Unable to execute fwknop. It says: "'.$last.'".' );
-	}
+		if( $return === 0 ) {
+			$message->addMessage( 'Knock send successfully to "'.$target.'". With correct settings, you should be able to access the server for a limited time now.' );
+		} else {
+			$message->addError( 'Unable to execute fwknop. It says: "'.htmlspecialchars($last).'".' );
+		}
 
-	if( $ERRORS_VERBOSE ) {
-		$message->addMessage( 'Output:<br />'.implode( '<br />', $output ) );
+		if( $ERRORS_VERBOSE ) {
+			$message->addMessage( 'Command:<br />'.htmlspecialchars(str_replace( $encryptionKey, '****', $cmd ) ).
+				'<br /><br />Output:<br />'.implode( '<br />', array_map( 'htmlspecialchars', $output ) ) );
+		}
 	}
 }
 
