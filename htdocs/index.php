@@ -77,7 +77,7 @@ if( $USE_HTTPS_ONLY && (!isset( $_SERVER['HTTPS'] ) || $_SERVER['HTTPS'] != 'on'
 
 // convert variables into constans in order to have them globally
 // available and to increase security
-define( 'PRODUCT_NAME',				'Knock PHP' );
+define( 'PRODUCT_NAME',				'PHPKnock' );
 define( 'PRODUCT_VERSION',			'0.1' );
 
 define( 'PATH_FS_APPLICATION',		$PATH_FS_APPLICATION );
