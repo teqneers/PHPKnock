@@ -40,7 +40,7 @@ Make temporary directory writable for web server user:
 # chmod 770 phpknock/tmp
 </pre>
 
-Now you should be able to use **PHPKnock** thru your web browser. Enter something like <pre>https://your-domain.com/path-to/phpknock/</pre>
+Now you should be able to use **PHPKnock** through your web browser. Enter something like <pre>https://your-domain.com/path-to/phpknock/</pre>
 
 
 Contribute
