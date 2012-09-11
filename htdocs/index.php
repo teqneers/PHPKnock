@@ -236,7 +236,11 @@ if( !$error && $form->element( 'doKnock' )->value() == 1 && $form->validate() ) 
 			// destinations are in dropdown
 			$hosts	= array();
 			foreach( $value as $key ) {
-				$hosts[]	= $DESTINATION[ $key ];
+				if( (string)(int)$key === $key ) {
+					$hosts[]	= $DESTINATION[ $key ];
+				} else {
+					$hosts[]	= $key;
+				}
 			}
 		} else {
 			// destinations entered in a textfield
