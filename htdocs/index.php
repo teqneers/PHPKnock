@@ -89,6 +89,7 @@ define( 'PRODUCT_VERSION',			'0.1' );
 define( 'PATH_FS_APPLICATION',		$PATH_FS_APPLICATION );
 define( 'PATH_FS_TMP',				$PATH_FS_APPLICATION.'/tmp' );
 define( 'PATH_APPLICATION',			$PATH_APPLICATION );
+define( 'PATH_FS_PASSWORD',			PATH_FS_TMP.'/.fwknop.pass' );
 
 define( 'USE_HTTPS_ONLY',			$USE_HTTPS_ONLY );
 define( 'URL_SCHEME',				$URL_SCHEME );
@@ -106,6 +107,27 @@ spl_autoload_register( 'autoload' );
 #############################################################################
 ###	FUNCTIONS
 #############################################################################
+// catch app interruption and clean up password file
+if( function_exists('pcntl_signal') ) {
+	declare( ticks = 1 );
+	pcntl_signal(SIGINT, function() {
+		if( file_exists( PATH_FS_PASSWORD ) ) {
+			unlink( PATH_FS_PASSWORD );
+		}
+		exit(1);
+	});
+} else {
+	class CleanUp
+	{
+		public function __destruct() {
+			if( file_exists( PATH_FS_PASSWORD ) ) {
+				unlink( PATH_FS_PASSWORD );
+			}
+		}
+	}
+	$cleanup	= new CleanUp();
+}
+
 /**
  *	Builds and returns form
  *
@@ -203,15 +225,18 @@ if( !is_writable( PATH_FS_TMP ) ) {
 if( !$error && $form->element( 'doKnock' )->value() == 1 && $form->validate() ) {
 	$encryptionKey	= $ENCRYPTION_KEY !== null ? $ENCRYPTION_KEY : $form->element( 'encryptionKey' )->dbValue();
 
-	$execute	= array( 'echo '.escapeshellarg( escapeshellcmd( $encryptionKey ) ).' | '.$FWKNOP_CLI );
+	$execute	= array( $FWKNOP_CLI );
 
-	// we need to set home dir in order to write some files needed by fwknop
-	$execute['Home-dir']	= '--Home-dir '.PATH_FS_APPLICATION.'/tmp';
-	
+	if( $ERRORS_VERBOSE ) {
+		$execute['verbose']	= '--verbose';
+	}
+
+	$execute['G']	= '-G '.escapeshellarg( escapeshellcmd( PATH_FS_PASSWORD ) );
+
 	if( $SERVER_PORT !== null ) {
-		$execute['Server-port']	= '--Server-port '.$SERVER_PORT;
+		$execute['server-port']	= '--server-port '.$SERVER_PORT;
 	} elseif ( !$form->element( 'serverPort' )->isEmpty() ) {
-		$execute['Server-port']	= '--Server-port '.escapeshellarg( escapeshellcmd( $form->element( 'serverPort' )->dbValue() ) );
+		$execute['server-port']	= '--server-port '.escapeshellarg( escapeshellcmd( $form->element( 'serverPort' )->dbValue() ) );
 	}
 
 	if( $ACCESS_PORT_LIST !== null ) {
@@ -252,23 +277,55 @@ if( !$error && $form->element( 'doKnock' )->value() == 1 && $form->validate() ) 
 		}
 	}
 
+	$descriptorspec = array(
+	   0 => array( "pipe", "r+" ),	// STDIN ist eine Pipe, von der das Child liest
+	   1 => array( "pipe", "w" ),	// STDOUT ist eine Pipe, in die das Child schreibt
+	   2 => array( "pipe", "w" )	// STDERR
+	);
+
+	$env = array(
+		'HOME' => PATH_FS_TMP
+	);
+
 	foreach( $hosts as $target ) {
+		file_put_contents( PATH_FS_PASSWORD, $target.':'.$encryptionKey );
+
 		$execute['D']	= '-D '.escapeshellarg( escapeshellcmd( $target ) );
 
 		// execute command on CLI and check return code
 		// forward errors to stdout in order to see them in output
 		$cmd	= implode( ' ', $execute ).' 2>&1';
-		$last	= exec( $cmd, $output, $return );
+
+		$process = proc_open( $cmd, $descriptorspec, $pipes, PATH_FS_TMP, $env);
+
+		if (is_resource($process)) {
+			//fwrite( $pipes[0], $encryptionKey );
+			fclose( $pipes[0]);
+
+			$output	= stream_get_contents($pipes[1]);;
+			$error	= stream_get_contents($pipes[2]);
+			fclose($pipes[1]);
+			fclose($pipes[2]);
+
+			// it's important to close all pipes before doing
+			// a proc_close in order to prevent dead locks
+			$return = proc_close($process);
+		}
+
 
 		if( $return === 0 ) {
 			$message->addMessage( 'Knock send successfully to "'.$target.'". With correct settings, you should be able to access the server for a limited time now.' );
 		} else {
-			$message->addError( 'Unable to execute fwknop. It says: "'.htmlspecialchars($last).'".' );
+			if( !empty($output) && !empty($error) ) {
+				$output	.= "\n$error";
+			}
+			$output	= preg_replace( "(\n$)", '', $output );
+			$message->addError( 'Unable to execute fwknop. It says: "'.str_replace( "\n", "<br />\n", htmlspecialchars($output).'".' ) );
 		}
 
 		if( $ERRORS_VERBOSE ) {
 			$message->addMessage( 'Command:<br />'.htmlspecialchars(str_replace( $encryptionKey, '****', $cmd ) ).
-				'<br /><br />Output:<br />'.implode( '<br />', array_map( 'htmlspecialchars', $output ) ) );
+				'<br /><br />Output:<br />'.str_replace( "\n", "<br />\n", htmlspecialchars($output) ) );
 		}
 	}
 }
