@@ -23,7 +23,7 @@
 
 /**
  * Main application entry script
- * 
+ *
  * This script will display all necessary form elements to configure
  * port knocking or Single Package Authorization SPA. It will trigger
  * fwknop client on console to actually initiate port knocking.
@@ -52,6 +52,7 @@ $FWKNOP_CLI				= '/usr/bin/fwknop';
 $SERVER_PORT 			= 62201;
 $ACCESS_PORT_LIST		= 'tcp/22';
 $DESTINATION			= null;
+
 
 // override configuration values
 include __DIR__.'/../local_config.php';
@@ -141,7 +142,7 @@ function form() {
 	if( is_array($DESTINATION) ) {
 		/** @var $element FormElementDropdown */
 		$element	= $form->factory( 'Dropdown', 'destination', 'Server', $DESTINATION )
-			->setMaximumSize( 10 )
+			->setMaximumSize( 20 )
 			->setIsMultiple( true )
 			->setNotNull();
 	} elseif ( $DESTINATION === null ) {
@@ -379,7 +380,7 @@ echo '
 
 				echo '
 				<h1 class="legend">Legend</h1>
-				
+
 				<div class="noticeHeader"><img src="static/images/notice.png" align="middle" border="0" alt="notice" title="notice" />&nbsp;Origin</div>
 				<div class="description">This port knocking client is based on <a href="http://cipherdyne.org/fwknop/" target="_blank">fwknop</a>. For more information read their <a href="http://cipherdyne.org/fwknop/docs/" target="_blank">documentation</a>.
 				</div>

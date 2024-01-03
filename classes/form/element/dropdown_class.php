@@ -332,7 +332,7 @@ class FormElementDropdown extends FormElement {
 		if( is_array( $this->options() ) ) {
 			foreach( $this->options() as $key => $option ) {
 				// SELECTED must be compared as STRICT because sometimes the values are '0'.
-				$tmp		= count($value) && in_array((string)$key, (array)$value, true) != false ? 'selected' : null;
+				$tmp		= count((array)$value) && in_array((string)$key, (array)$value, true) != false ? 'selected' : null;
 				$optionAttr	= array(
 					'value'		=> htmlspecialchars( $key, ENT_QUOTES, 'UTF-8', true ),
 					'selected'	=> $tmp
