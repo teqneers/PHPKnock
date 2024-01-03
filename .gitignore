@@ -1,5 +1,6 @@
 .idea
 tmp/*
+error.log
 
 # Ignore all the configuration files
 local_config.php
