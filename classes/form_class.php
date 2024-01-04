@@ -24,366 +24,359 @@
 /**
  * Form Class
  *
- * @author		Oliver G. Mueller <mueller@teqneers.de>
- * @package		PHPKnock
- * @subpackage	Classes
- * @copyright	Copyright (C) 2003-2012 TEQneers GmbH & Co. KG. All rights reserved
+ * @author         Oliver G. Mueller <mueller@teqneers.de>
+ * @package        PHPKnock
+ * @subpackage     Classes
+ * @copyright      Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved
  */
 
 /**
  * Form Class
  *
- * This class represents a html form.
+ * This class represents an HTML form.
  *
- * @package		PHPKnock
- * @subpackage	Classes
+ * @package        PHPKnock
+ * @subpackage     Classes
  */
-class Form {
+class Form
+{
 
-	##################################################
-	# attributes
-	##################################################
-	/**
-	 * Name of form
-	 *
-	 * @var		string
-	 */
-	protected $_name	= null;
+    ##################################################
+    # attributes
+    ##################################################
+    /**
+     * Name of form
+     */
+    protected string $_name;
 
+    /**
+     * List of form elements
+     */
+    protected array $_elementList = [];
 
-	/**
-	 * List of form elements
-	 *
-	 * @var		array
-	 */
-	protected $_elementList	= array();
+    /**
+     * This contains the form tag attribute list
+     */
+    protected array $_attributeList = [];
 
-
-	/**
-	 * This contains the form tag attribute list
-	 *
-	 * @var		array
-	 */
-	protected $_attributeList	= array();
+    /**
+     * List of errors, which occured during validation
+     */
+    protected array $_errorList = [];
 
 
-	##################################################
-	# methods
-	##################################################
-	/**
-	 * CONSTRUCTOR
-	 *
-	 * @param	string	$name		Name of form
-	 */
-	public function __construct( $name ) {
-		$this->_name	= $name;
+    ##################################################
+    # methods
+    ##################################################
+    /**
+     * @param  string  $name  Name of form
+     */
+    public function __construct(string $name)
+    {
+        $this->_name = $name;
 
-		// define default form attributes
-		$this->setAttribute( 'name', $name );
-		$this->setAttribute( 'action', $_SERVER['SCRIPT_NAME'] );
-		$this->setAttribute( 'method', 'post' );
-	}
-
-
-	/**
-	 * Return an element of the given type
-	 *
-	 * It is also possible to add more parameter. These will transfered to
-	 * the element's constructor.
-	 *
-	 * The created element is going to be added to this form as well.
-	 *
-	 * IMPORTANT: certain element will need more than one argument in their
-	 * constructor. These args have to be added as well. The function keeps
-	 * them in same order.
-	 *
-	 * HINT: in order to use autoloading, it might be necessary to be case
-	 * sensitive with $elementType.
-	 *
-	 * @param	string	$elementType	Type of element, e.g. 'Text', 'DropdownDb', etc
-	 * @param	string	$elementName	Name of element
-	 * @return	FormElement				Form element instance
-	 */
-	public function factory( $elementType, $elementName ) {
-		// arguments you wish to pass to constructor of new object
-		$args	= func_get_args();
-		array_shift($args);
-
-		// class name of new object
-		$className	= 'FormElement'.$elementType;
-		if( !class_exists( $className ) ) {
-			trigger_error( get_class($this).': Element of type "'.$className.'" does not exists.', E_USER_ERROR );
-		}
-
-		// make a reflection object
-		$reflectionObj	= new ReflectionClass($className);
-
-		// use Reflection to create a new instance, using the $args
-		$obj	= $reflectionObj->newInstanceArgs($args);
-
-		$this->_elementList[ $obj->name() ]	= $obj;
-		return $obj;
-	}
+        // define default form attributes
+        $this->setAttribute('name', $name);
+        $this->setAttribute('action', $_SERVER['SCRIPT_NAME']);
+        $this->setAttribute('method', 'post');
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * Return a single element with given name. NULL will be
-	 * return, if element does not exists.
-	 *
-	 * @param	string	$name		Name of element
-	 * @return	FormElement			Form element
-	 */
-	public function element( $name ) {
-		if( array_key_exists( $name, $this->_elementList ) ) {
-			return $this->_elementList[$name];
-		} else {
-			$ret	= null;
-			return $ret;
-		} // if
-	}
+    /**
+     * Return an element of the given type
+     *
+     * It is also possible to add more parameters. These will be transferred to
+     * the element's constructor.
+     *
+     * The created element is going to be added to this form as well.
+     *
+     * IMPORTANT: certain elements will need more than one argument in their
+     * constructor. These args have to be added as well. The function keeps
+     * them in the same order.
+     *
+     * HINT: to use autoloading, it might be necessary to be case-sensitive with $elementType.
+     *
+     * @param  string  $elementType  Type of element, e.g. 'Text', 'DropdownDb', etc
+     * @param  string  $elementName  Name of element
+     * @throws ReflectionException
+     */
+    public function factory(string $elementType, string $elementName): FormElement
+    {
+        // arguments you wish to pass to constructor of the new object
+        $args = func_get_args();
+        array_shift($args);
+
+        // class name of the new object
+        $className = 'FormElement' . $elementType;
+        if (!class_exists($className)) {
+            trigger_error(get_class($this) . ': Element of type "' . $className . '" does not exists.', E_USER_ERROR);
+        }
+
+        // make a reflection object
+        $reflectionObj = new ReflectionClass($className);
+
+        // use Reflection to create a new instance, using the $args
+        $obj = $reflectionObj->newInstanceArgs($args);
+
+        $this->_elementList[$obj->name()] = $obj;
+        return $obj;
+    }
 
 
-	/**
-	 * Will fetch data
-	 *
-	 * @see		fetchGlobal()
-	 * @see		fetchRequest()
-	 * @see		FormElement::fetch()
-	 */
-	public function fetch() {
-		foreach( $this->_elementList as $elementItem ) {
-			$elementItem->fetch();
-		} // foreach
-
-	} // function
-
-
-	/**
-	 * Will fetch data again
-	 *
-	 * @see		FormElement::fetchGlobal()
-	 */
-	public function fetchGlobal() {
-		foreach( $this->_elementList as $elementItem ) {
-			$elementItem->fetchGlobal();
-		} // foreach
-
-	} // function
+    /**
+     * Accessor
+     *
+     * Return a single element with given name. NULL will be
+     * returned if the element does not exist.
+     *
+     * @param  string  $name  Name of element
+     */
+    public function element(string $name): ?FormElement
+    {
+        return $this->_elementList[$name] ?? null; // if
+    }
 
 
-	/**
-	 * Validates all elements
-	 *
-	 * @see		FormElement::validate()
-	 * @return	boolean					TRUE indicates correct data, FALSE indicates an error
-	 */
-	public function validate() {
-		$valid	= true;
+    /**
+     * Will fetch data
+     *
+     * @see        fetchGlobal()
+     * @see        fetchRequest()
+     * @see        FormElement::fetch()
+     */
+    public function fetch(): void
+    {
+        foreach ($this->_elementList as $elementItem) {
+            $elementItem->fetch();
+        } // foreach
 
-		// reset error list
-		$this->_errorList	= array();
-
-		// check form integrity
-		// check each element
-		foreach( $this->_elementList as $elementItem ) {
-			if( !$elementItem->validate() ) {
-				$valid	= false;
-				$this->_errorList[$elementItem->name()]	= $elementItem->name();
-			}
-		} // foreach
-
-		return $valid;
-	} // function
+    } // function
 
 
-	/**
-	 * Returns all DB values
-	 *
-	 * @see		FormElement::dbValue()
-	 * @return	Array
-	 */
-	public function dbValues() {
-		$ret	= array();
-		foreach( $this->_elementList as $elementItem ) {
-			$ret[$elementItem->name()]	= $elementItem->dbValue();
-		} // foreach
+    /**
+     * Will fetch data again
+     *
+     * @see        FormElement::fetchGlobal()
+     */
+    public function fetchGlobal(): void
+    {
+        foreach ($this->_elementList as $elementItem) {
+            $elementItem->fetchGlobal();
+        } // foreach
 
-		return $ret;
-	} // function
+    } // function
 
 
-	#######################################################################
-	# output methods
-	#######################################################################
-	/**
-	 * Output HTML form header
-	 *
-	 * @see		setAttribute()
-	 * @see		display()
-	 * @see		displayFooter()
-	 */
-	public function displayFormHeader() {
-		echo $this->htmlFormHeader();
-	}
+    /**
+     * Validates all elements
+     *
+     * @return boolean                    TRUE indicates correct data, FALSE indicates an error
+     * @see    FormElement::validate()
+     */
+    public function validate(): bool
+    {
+        $valid = true;
 
-	/**
-	 * HTML form header
-	 *
-	 * @see		setAttribute()
-	 * @see		display()
-	 * @see		displayFooter()
-	 * @return 	string					HTML code
-	 */
-	public function htmlFormHeader() {
-		$html	= '
-		<form '.Html::array2attributes($this->attribute()).'>
-		';
+        // reset error list
+        $this->_errorList = [];
 
-		return $html;
-	}
+        // check form integrity
+        // check each element
+        foreach ($this->_elementList as $elementItem) {
+            if (!$elementItem->validate()) {
+                $valid                                  = false;
+                $this->_errorList[$elementItem->name()] = $elementItem->name();
+            }
+        } // foreach
 
-	/**
-	 * Output HTML form body
-	 *
-	 * @see		displayForm()
-	 * @see		displayFormHeader()
-	 * @see		displayFormFooter()
-	 */
-	public function displayFormBody() {
-		echo $this->htmlFormBody();
-	}
+        return $valid;
+    } // function
 
-	/**
-	 * HTML form body
-	 *
-	 * @see		displayForm()
-	 * @see		displayFormHeader()
-	 * @see		displayFormFooter()
-	 * @return 	string					HTML code
-	 */
-	public function htmlFormBody() {
-		$html	= null;
 
-		$elementList	= $this->_elementList;
-		// display hidden fields first (browsers like IE 6/7
-		// may crash, if hidden fields are displayed between
-		// table rows.
-		foreach( $elementList as $key => $elementItem ) {
-			if( $elementItem instanceof FormElementHidden ) {
-				$html	.= $elementItem->htmlFormRow();
-				unset( $elementList[$key] );
-			}
-		}
+    /**
+     * Returns all DB values
+     *
+     * @return array
+     * @see    FormElement::dbValue()
+     */
+    public function dbValues(): array
+    {
+        $ret = [];
+        foreach ($this->_elementList as $elementItem) {
+            $ret[$elementItem->name()] = $elementItem->dbValue();
+        } // foreach
 
-		$html	.= '
-		<table summary="" class="formClass">
+        return $ret;
+    } // function
+
+
+    #######################################################################
+    # output methods
+    #######################################################################
+    /**
+     * Output HTML form header
+     *
+     * @see        setAttribute()
+     * @see        display()
+     * @see        displayFooter()
+     */
+    public function displayFormHeader(): void
+    {
+        echo $this->htmlFormHeader();
+    }
+
+    /**
+     * HTML form header
+     *
+     * @return string                    HTML code
+     * @see    display()
+     * @see    displayFooter()
+     * @see    setAttribute()
+     */
+    public function htmlFormHeader(): string
+    {
+        return '
+        <form ' . Html::array2attributes($this->attribute()) . '>
+        ';
+    }
+
+    /**
+     * Output HTML form body
+     *
+     * @see  displayForm()
+     * @see  displayFormHeader()
+     * @see  displayFormFooter()
+     */
+    public function displayFormBody(): void
+    {
+        echo $this->htmlFormBody();
+    }
+
+    /**
+     * HTML form body
+     *
+     * @return string                    HTML code
+     * @see    displayFormHeader()
+     * @see    displayFormFooter()
+     * @see    displayForm()
+     */
+    public function htmlFormBody(): string
+    {
+        $html = null;
+
+        $elementList = $this->_elementList;
+        // display hidden fields first (browsers like IE 6/7
+        // may crash if hidden fields are displayed between
+        // table rows).
+        foreach ($elementList as $key => $elementItem) {
+            if ($elementItem instanceof FormElementHidden) {
+                $html .= $elementItem->htmlFormRow();
+                unset($elementList[$key]);
+            }
+        }
+
+        $html .= '
+		<table class="formClass">
 		<tbody>';
 
-		foreach( $elementList as $elementItem ) {
-			// display groupless elements
-			$html	.= $elementItem->htmlFormRow();
-		}
+        foreach ($elementList as $elementItem) {
+            // display group-less elements
+            $html .= $elementItem->htmlFormRow();
+        }
 
-		$html	.= '
+        $html .= '
 		</tbody>
 		</table>';
 
-		return $html;
-	}
+        return $html;
+    }
 
-	/**
-	 * Output HTML form footer
-	 *
-	 * @see		displayForm()
-	 * @see		displayFormHeader()
-	 */
-	public function displayFormFooter() {
-		echo $this->htmlFormFooter();
-	}
+    /**
+     * Output HTML form footer
+     *
+     * @see   displayForm()
+     * @see   displayFormHeader()
+     */
+    public function displayFormFooter(): void
+    {
+        echo $this->htmlFormFooter();
+    }
 
-	/**
-	 * HTML form footer
-	 *
-	 * @see		displayForm()
-	 * @see		displayFormHeader()
-	 * @return 	string					HTML code
-	 */
-	public function htmlFormFooter() {
-		return '
+    /**
+     * HTML form footer
+     *
+     * @return string                    HTML code
+     * @see    displayFormHeader()
+     * @see    displayForm()
+     */
+    public function htmlFormFooter(): string
+    {
+        return '
 		</form>';
-	}
+    }
 
-	/**
-	 * Output HTML form header/body/footer
-	 *
-	 * @see		displayForm()
-	 * @see		displayFormHeader()
-	 * @see		displayFormFooter()
-	 */
-	public function displayForm() {
-		echo $this->htmlForm();
-	}
+    /**
+     * Output HTML form header/body/footer
+     *
+     * @see   displayForm()
+     * @see   displayFormHeader()
+     * @see   displayFormFooter()
+     */
+    public function displayForm(): void
+    {
+        echo $this->htmlForm();
+    }
 
-	/**
-	 * HTML form header/body/footer
-	 *
-	 * @see		displayForm()
-	 * @see		displayFormHeader()
-	 * @see		displayFormFooter()
-	 * @return 	string					HTML code
-	 */
-	public function htmlForm() {
-		return $this->htmlFormHeader() . $this->htmlFormBody() . $this->htmlFormFooter();
-	}
-
-
-	#######################################################################
-	# accessor methods
-	#######################################################################
-	/**
-	 * Accessor
-	 *
-	 * Returns the value of the form tag value related to the
-	 * given key. If key is null, the whole array will be returned.
-	 * A non existing value will be return as null.
-	 *
-	 * IMPORTANT: all keys are lowercase.
-	 *
-	 * @see		setAttribute
-	 * @param	string	$key	Name of attribute
-	 * @return	NULL|string		Attribute value
-	 */
-	public function attribute( $key = null ) {
-		if( $key === null ) {
-			return $this->_attributeList;
-		} else {
-			if( array_key_exists( strtolower($key), $this->_attributeList ) ) {
-				return $this->_attributeList[strtolower($key)];
-			} else {
-				return null;
-			}
-		}
-	}
+    /**
+     * HTML form header/body/footer
+     *
+     * @return string                    HTML code
+     * @see    displayFormHeader()
+     * @see    displayFormFooter()
+     * @see    displayForm()
+     */
+    public function htmlForm(): string
+    {
+        return $this->htmlFormHeader() . $this->htmlFormBody() . $this->htmlFormFooter();
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * Will set the form html attributes
-	 *
-	 * @see		attribute
-	 * @param	string	$key			Lower case name of attribute
-	 * @param	string	$value			Value of attribute
-	 * @return	Form					Return $this for fluent interface (method chaining)
-	 */
-	public function setAttribute( $key, $value ) {
-		$this->_attributeList[ strtolower($key) ]	= $value;
+    #######################################################################
+    # accessor methods
+    #######################################################################
+    /**
+     * Returns the value of the form tag value related to the given key
+     *
+     * If the key is null, the whole array will be returned. A non-existing value will be returned as null.
+     *
+     * IMPORTANT: all keys are lowercase.
+     *
+     * @param  string|null  $key  Name of attribute
+     * @return null|string|array  Attribute value
+     * @see    setAttribute
+     */
+    public function attribute(?string $key = null)
+    {
+        if ($key === null) {
+            return $this->_attributeList;
+        }
 
-		return $this;
-	}
+        return $this->_attributeList[strtolower($key)] ?? null;
+    }
 
 
+    /**
+     * Will set the form html attributes
+     *
+     * @param  string  $key    Lower case name of attribute
+     * @param  string  $value  Value of attribute
+     * @return Form            Return $this for fluent interface (method chaining)
+     * @see    attribute
+     */
+    public function setAttribute(string $key, string $value): self
+    {
+        $this->_attributeList[strtolower($key)] = $value;
+
+        return $this;
+    }
 }
-?>

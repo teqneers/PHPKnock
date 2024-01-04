@@ -24,10 +24,10 @@
 /**
  * Form Element Password Class
  *
- * @author		Oliver G. Mueller <mueller@teqneers.de>
- * @package		PHPKnock
- * @subpackage	Classes
- * @copyright	Copyright (C) 2003-2012 TEQneers GmbH & Co. KG. All rights reserved
+ * @author         Oliver G. Mueller <mueller@teqneers.de>
+ * @package        PHPKnock
+ * @subpackage     Classes
+ * @copyright      Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved
  */
 
 /**
@@ -35,125 +35,126 @@
  *
  * This class represents a single html form element of type password.
  *
- * @package		PHPKnock
- * @subpackage	Classes
+ * @package        PHPKnock
+ * @subpackage     Classes
  */
-class FormElementPassword extends FormElement {
+class FormElementPassword extends FormElement
+{
 
-	#######################################################################
-	# attributes
-	#######################################################################
+    #######################################################################
+    # attributes
+    #######################################################################
+    protected string $_validRegExp = '';
 
-
-	#######################################################################
-	# methods
-	#######################################################################
-	/**
-	 * CONSTRUCTOR
-	 *
-	 * @param	string	$name			Name of form
-	 * @param	string	$label			Label content
-	 */
-	function __construct( $name, $label ) {
-		$this->_name	= $name;
-		$this->_label	= $label;
-	}
-
-
-	#######################################################################
-	# data methods
-	#######################################################################
+    #######################################################################
+    # methods
+    #######################################################################
+    /**
+     * @param  string  $name   Name of form
+     * @param  string  $label  Label content
+     */
+    public function __construct(string $name, string $label)
+    {
+        parent::__construct($name);
+        $this->_label = $label;
+    }
 
 
-	#######################################################################
-	# output methods
-	#######################################################################
-	/**
-	 * Generate HTML form output for element
-	 *
-	 * @return	string			HTML output
-	 */
-	public function htmlFormRow() {
-		$attr			= array();
-		//		$attr['class']	= $this->formClass();
-
-		$labelAttr	= Html::array2attributes( $attr );
-
-		$label	= '<label '.Html::array2attributes( $attr ).'>';
-
-		if( $this->hint() != '' ) {
-			// show help cursor when a hint is given and the mouse hovers above the label
-			$label	.= '<span style="cursor:help;" title="'.htmlentities( $this->hint(), ENT_QUOTES, CHARSET, true ).'">'.$this->label().'</span>';
-		} else {
-			$label	.= $this->label();
-		}
-		$label	.= '</label>';
+    #######################################################################
+    # data methods
+    #######################################################################
 
 
-		if( $this->isEmpty() && $this->defaultValue() !== null ) {
-			$this->setDbValue( $this->defaultValue() );
-		}
+    #######################################################################
+    # output methods
+    #######################################################################
+    /**
+     * Generate HTML form output for element
+     *
+     * @return string            HTML output
+     */
+    public function htmlFormRow(): string
+    {
+        $attr = [];
+        //		$attr['class']	= $this->formClass();
 
-		// define HTML attributes for input field
-		$attr	= array(
-			'type'			=> 'password',
-			'name'			=> 'data['.$this->name().']',
-			'value'			=> null,
+        $labelAttr = Html::array2attributes($attr);
+
+        $label = '<label ' . Html::array2attributes($attr) . '>';
+
+        if ($this->hint() !== '') {
+            // show help cursor when a hint is given and the mouse hovers above the label
+            $label .= '<span style="cursor:help;" title="' . htmlentities(
+                    $this->hint(),
+                    ENT_QUOTES,
+                    CHARSET
+                ) . '">' . $this->label() . '</span>';
+        } else {
+            $label .= $this->label();
+        }
+        $label .= '</label>';
+
+
+        if ($this->isEmpty() && $this->defaultValue() !== null) {
+            $this->setDbValue($this->defaultValue());
+        }
+
+        // define HTML attributes for input field
+        $attr = [
+            'type'       => 'password',
+            'name'       => 'data[' . $this->name() . ']',
+            'value'      => null,
 //			'class'			=> $this->formClass(),
-			'onkeypress'	=> 'if( event.keyCode==13 || event.which==13) this.form.submit();'
-		);
+            'onkeypress' => 'if( event.keyCode==13 || event.which==13) this.form.submit();',
+        ];
 
-		$value	= '<input '.Html::array2attributes( $attr ).' />';
-		$ret	= '
-		<tr><td '.$labelAttr.'>'.$label.'</td><td>'.$value.$this->htmlErrorMessage().'</td></tr>';
-		return $ret;
-	}
-
+        $value = '<input ' . Html::array2attributes($attr) . ' />';
+        return '
+		<tr><td ' . $labelAttr . '>' . $label . '</td><td>' . $value . $this->htmlErrorMessage() . '</td></tr>';
+    }
 
 
 
-	#######################################################################
-	# accessor methods
-	#######################################################################
-	/**
-	 * Accessor
-	 *
-	 * @see		setValidRegExp()
-	 * @see		validate()
-	 * @return	string		Valid PCRE compatible regular expression
-	 */
-	public function validRegExp() {
-		return $this->_validRegExp;
-	}
+
+    #######################################################################
+    # accessor methods
+    #######################################################################
+    /**
+     * Accessor
+     *
+     * @return string        Valid PCRE compatible regular expression
+     * @see    validate()
+     * @see    setValidRegExp()
+     */
+    public function validRegExp(): string
+    {
+        return $this->_validRegExp;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * If this value is set to anything not empty, the value will be validated
-	 * against this regular expression (PCRE compatible, not POSIX!).
-	 * This value might produce an {@link setError()} if the regular expression
-	 * is not found in {@link value()}.
-	 *
-	 * Example:
-	 * An element which will only exept numbers as a valid input:
-	 * <code>
-	 *   $element->setValidRegExp( '/^[0-9]+$/' );
-	 * </code>
-	 *
-	 * @see		validRegExp()
-	 * @param	string	$regExp			Valid regular expression (PCRE)
-	 * @return	FormElementText			Return $this for fluent interface (method chaining)
-	 */
-	public function setValidRegExp( $regExp ) {
-		$this->_validRegExp	= $regExp;
+    /**
+     * Accessor
+     *
+     * If this value is set to anything not empty, the value will be validated
+     * against this regular expression (PCRE compatible, not POSIX!).
+     * This value might produce an {@link setError()} if the regular expression
+     * is not found in {@link value()}.
+     *
+     * Example:
+     * An element which will only except numbers as a valid input:
+     * <code>
+     *   $element->setValidRegExp( '/^[0-9]+$/' );
+     * </code>
+     *
+     * @param  string  $regExp  Valid regular expression (PCRE)
+     * @see    validRegExp()
+     */
+    public function setValidRegExp(string $regExp): self
+    {
+        $this->_validRegExp = $regExp;
 
-		return $this;
-	}
-
-
-
+        return $this;
+    }
 
 
 }
-?>

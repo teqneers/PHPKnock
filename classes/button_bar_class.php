@@ -24,105 +24,125 @@
 /**
  * Button Bar Class
  *
- * @author		Oliver G. Mueller <mueller@teqneers.de>
- * @package		PHPKnock
- * @subpackage	Classes
- * @copyright	Copyright (C) 2003-2012 TEQneers GmbH & Co. KG. All rights reserved
+ * @author         Oliver G. Mueller <mueller@teqneers.de>
+ * @package        PHPKnock
+ * @subpackage     Classes
+ * @copyright      Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved
  */
 
 /**
  * Button Bar Class
  *
- * This class represents a html button bar.
+ * This class represents an HTML button bar.
  *
- * @package		PHPKnock
- * @subpackage	Classes
+ * @package        PHPKnock
+ * @subpackage     Classes
  */
-class ButtonBar {
+class ButtonBar
+{
 
-	##################################################
-	# attributes
-	##################################################
-	/**
-	 * Button list
-	 *
-	 * @var 	array
-	 */
-	protected $_buttons	= array();
+    ##################################################
+    # attributes
+    ##################################################
+    /**
+     * Button list
+     */
+    protected array $_buttons = [];
 
 
-	##################################################
-	# methods
-	##################################################
-	/**
-	 * Display button bar as HTML code
-	 */
-	public function display() {
-		foreach( $this->_buttons as $button ) {
-			if( $button['type'] == 'html' ) {
-				echo '<input class="button" type="submit" '.Html::array2attributes($button['attributes']).'>';
-			} else {
-				echo '<input class="button" type="submit" '.Html::array2attributes($button['attributes']).' onclick="javascript:'.$button['url'].'">';
-			}
-		}
-	}
+    ##################################################
+    # methods
+    ##################################################
+    /**
+     * Display button bar as HTML code
+     */
+    public function display(): void
+    {
+        foreach ($this->_buttons as $button) {
+            if ($button['type'] === 'html') {
+                echo '<input class="button" type="submit" ' . Html::array2attributes($button['attributes']) . '>';
+            } else {
+                echo '<input class="button" type="submit" ' . Html::array2attributes(
+                        $button['attributes']
+                    ) . ' onclick="javascript:' . $button['url'] . '">';
+            }
+        }
+    }
 
-	/**
-	 * Add element
-	 *
-	 * This method is a helper function which make it easier to use the
-	 * display classes. this will get the default parameter to handle
-	 * for a simple element and add it to the element list. It will override
-	 * the base method, because buttons will often use images.
-	 *
-	 * @param	string		$key		Key used as unique identifier
-	 * @param 	string		$type		Display element type (html|js|ajax)
-	 * @param 	string		$name		Name
-	 * @param 	string		$hint		Hint text
-	 * @param 	string		$url		Url or type specific linking
-	 * @param 	string		$target		Target
-	 */
-	public function add( $key, $type = 'html', $name, $hint = null, $url = '#', $target = null ) {
+    /**
+     * Add an element
+     *
+     * This method is a helper function that makes it easier to use the
+     * display classes. This will get the default parameter to handle
+     * for a simple element and add it to the element list. It will override
+     * the base method, because buttons will often use images.
+     *
+     * @param  string       $key     Key used as unique identifier
+     * @param  string       $name    Name
+     * @param  string       $type    Display element type (html|js|ajax)
+     * @param  string|null  $hint    Hint text
+     * @param  string       $url     URL or type-specific linking
+     * @param  string|null  $target  Target
+     */
+    public function add(
+        string $key,
+        string $name,
+        string $type = 'html',
+        ?string $hint = null,
+        string $url = '#',
+        ?string $target = null
+    ): void {
 
-		// get a new element using the analog factory method
-		$this->_buttons[]	= array(
-			'key'			=> $key,
-			'type'			=> $type,
-			'url'			=> $url,
-			'target'		=> $target,
-			'attributes'	=> array(
-				'value'		=> $name,
-				'name'		=> $hint,
-				'alt'		=> $hint,
-			)
-		);
-	}
+        // get a new element using the analog factory method
+        $this->_buttons[] = [
+            'key'        => $key,
+            'type'       => $type,
+            'url'        => $url,
+            'target'     => $target,
+            'attributes' => [
+                'value' => $name,
+                'name'  => $hint,
+                'alt'   => $hint,
+            ],
+        ];
+    }
 
-	/**
-	 * Alias for add() specialized for html elements
-	 *
-	 * @param	string		$key		Key used as unique identifier
-	 * @param 	string		$name		Name
-	 * @param 	string		$hint		Hint text
-	 * @param 	string		$url		Url or type specific linking
-	 * @param 	string		$target		Target
-	 */
-	public function addHtml( $key, $name, $hint = null, $url = '#', $target = null ) {
-		$this->add( $key, 'html', $name, $hint, $url, $target );
-	}
+    /**
+     * Alias for add() specialized for html elements
+     *
+     * @param  string       $key     Key used as unique identifier
+     * @param  string       $name    Name
+     * @param  string|null  $hint    Hint text
+     * @param  string       $url     URL or type-specific linking
+     * @param  string|null  $target  Target
+     */
+    public function addHtml(
+        string $key,
+        string $name,
+        ?string $hint = null,
+        string $url = '#',
+        ?string $target = null
+    ): void {
+        $this->add($key, $name, 'html', $hint, $url, $target);
+    }
 
-	/**
-	 * Alias for add() specialized for javascript elements
-	 *
-	 * @param	string		$key		Key used as unique identifier
-	 * @param 	string		$name		Name
-	 * @param 	string		$hint		Hint text
-	 * @param 	string		$url		Url or type specific linking
-	 * @param 	string		$target		Target
-	 */
-	public function addJs( $key, $name, $hint = null, $url = '#', $target = null ) {
-		$this->add( $key, 'js', $name, $hint, $url, $target );
-	}
+    /**
+     * Alias for add() specialized for javascript elements
+     *
+     * @param  string       $key     Key used as unique identifier
+     * @param  string       $name    Name
+     * @param  string|null  $hint    Hint text
+     * @param  string       $url     URL or type-specific linking
+     * @param  string|null  $target  Target
+     */
+    public function addJs(
+        string $key,
+        string $name,
+        ?string $hint = null,
+        string $url = '#',
+        ?string $target = null
+    ): void {
+        $this->add($key, $name, 'js', $hint, $url, $target);
+    }
 
 }
-?>

@@ -24,10 +24,10 @@
 /**
  * Form Element Class
  *
- * @author		Oliver G. Mueller <mueller@teqneers.de>
- * @package		PHPKnock
- * @subpackage	Classes
- * @copyright	Copyright (C) 2003-2012 TEQneers GmbH & Co. KG. All rights reserved
+ * @author         Oliver G. Mueller <mueller@teqneers.de>
+ * @package        PHPKnock
+ * @subpackage     Classes
+ * @copyright      Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved
  */
 
 /**
@@ -35,518 +35,502 @@
  *
  * This class represents a single html form element.
  *
- * @package		PHPKnock
- * @subpackage	Classes
+ * @package        PHPKnock
+ * @subpackage     Classes
  */
-class FormElement {
+class FormElement
+{
 
-	##################################################
-	# attributes
-	##################################################
-	/**
-	 * Name of this form element
-	 *
-	 * @var		string
-	 */
-	protected $_name	= null;
-
-
-	/**
-	 * The name is used as label
-	 *
-	 * @var		string
-	 */
-	protected $_label	= null;
+    ##################################################
+    # attributes
+    ##################################################
+    /**
+     * Name of this form element
+     */
+    protected ?string $_name = null;
 
 
-	/**
-	 * A mouse over hint which is put into a title tag around the label
-	 *
-	 * It will help the user to understand the meaning of the current element.
-	 *
-	 * @var		string
-	 */
-	protected $_hint;
+    /**
+     * The name is used as a label
+     */
+    protected ?string $_label = null;
 
 
-	/**
-	 * Contains the value itself
-	 *
-	 * It is important to know, that this value might
-	 * appear in different forms. This depends on the source (either DB or
-	 * http request). It should not be read directly to write it into a DB.
-	 * Use {@link dbValue()} instead.
-	 *
-	 * @var		string
-	 */
-	protected $_value;
+    /**
+     * A mouse over hint which is put into a title tag around the label
+     *
+     * It will help the user to understand the meaning of the current element.
+     */
+    protected string $_hint = '';
 
 
-	/**
-	 * Defines a default value
-	 *
-	 * If set to anything not empty, this value will be used in case form data is empty.
-	 * The use of this value depends on the form element object. Some objects (e.g. FormElementText)
-	 * will display this value instead of an empty html form.
-	 *
-	 * IMPORTANT: This value will not be used in text mode.
-	 *
-	 * @var		string
-	 */
-	protected $_default	= null;
+    /**
+     * Contains the value itself
+     *
+     * It is important to know that this value might
+     * appear in different forms. This depends on the source (either DB or
+     * http request). It should not be read directly to write it into a DB.
+     * Use {@link dbValue()} instead.
+     *
+     * @var        string
+     */
+    protected $_value;
 
 
-	/**
-	 * Defines whether {@link value()} can be empty/null/unselected
-	 *
-	 * Might trigger an {@link setError()}.
-	 *
-	 * @var		boolean
-	 */
-	protected $_notNull	= false;
+    /**
+     * Defines a default value
+     *
+     * If set to anything not empty, this value will be used in case form data is empty.
+     * The use of this value depends on the form element object. Some objects (e.g., FormElementText)
+     * will display this value instead of an empty html form.
+     *
+     * IMPORTANT: This value will not be used in text mode.
+     *
+     * @var        string
+     */
+    protected $_default;
 
 
-	/**
-	 * Flag which indicates a validation error
-	 *
-	 * @var		boolean
-	 */
-	protected $_error	= false;
+    /**
+     * Defines whether {@link value()} can be empty/null/unselected
+     *
+     * Might trigger an {@link setError()}.
+     */
+    protected bool $_notNull = false;
 
 
-	/**
-	 * Flag to indicate if the form element has been validated
-	 *
-	 * @var		boolean
-	 */
-	protected $_isValidated	= true;
+    /**
+     * Flag which indicates a validation error
+     */
+    protected bool $_error = false;
 
 
-	##################################################
-	# methods
-	##################################################
-	/**
-	 * CONSTRUCTOR
-	 *
-	 * @param	string	$name		Name of form
-	 */
-	function __construct( $name ) {
-		$this->_name	= $name;
-	}
+    /**
+     * Flag to indicate if the form element has been validated
+     */
+    protected bool $_isValidated = true;
 
 
-	#######################################################################
-	# data methods
-	#######################################################################
-	/**
-	 * This method is going to automatically fetch the correct value from the request or global namespace
-	 *
-	 * The data in the request has a higher priority than the global namespace data, which means, that once data
-	 * is set in a request the global name space data will be ignored.
-	 *
-	 * @see		fetchGlobal()
-	 * @see		fetchRequest()
-	 */
-	public function fetch() {
-		// find out if this value came out of the DB or from a form
-		if( isset( $_REQUEST['data'][ $this->_name ] ) ) {
-			$this->fetchRequest();
-		} elseif( isset( $GLOBALS['data'][ $this->_name ] ) ) {
-			$this->fetchGlobal();
-		} else {
-			// no value has been set.
-			$this->_value	= null;
-		}
-	}
+    ##################################################
+    # methods
+    ##################################################
+    /**
+     * @param  string  $name  Name of form
+     */
+    public function __construct(string $name)
+    {
+        $this->_name = $name;
+    }
 
 
-	/**
-	 * This method is going to fetch the value from global namespace
-	 */
-	public function fetchGlobal() {
-		$global	= &$GLOBALS[ 'data' ][ $this->_name ];
-
-		$this->setDbValue( $global );
-	}
-
-
-	/**
-	 * This method is going to fetch the value from request
-	 */
-	public function fetchRequest() {
-		// value was delivered by a request. Keep it like it is
-		$global	= &$_REQUEST[ 'data' ][ $this->_name ];
-
-		$this->_isValidated	= false;
-		$this->setValue( $global );
-	}
-
-
-	/**
-	 * This method will validate the element's value against defined validation rules (e.g. not null, ...)
-	 *
-	 * @see		setNotNull()
-	 * @return	bool		TRUE if no errors occurred
-	 */
-	public function validate() {
-
-		$this->setError( false );
-
-		// elements like uploads and images will return arrays for value()
-		// so simply check, if the array is empty.
-		if( $this->notNull() && $this->isEmpty() ) {
-			$this->setError( 'EMPTY VALUE' );
-		}
-
-		$this->_isValidated	= true;
-		return !$this->error();
-	}
+    #######################################################################
+    # data methods
+    #######################################################################
+    /**
+     * This method is going to automatically fetch the correct value from the request or global namespace
+     *
+     * The data in the request has a higher priority than the global namespace data, which means that once data
+     * is set in a request, the global name space data will be ignored.
+     *
+     * @see   fetchGlobal()
+     * @see   fetchRequest()
+     */
+    public function fetch(): void
+    {
+        // find out if this value came out of the DB or from a form
+        if (isset($_REQUEST['data'][$this->_name])) {
+            $this->fetchRequest();
+        } elseif (isset($GLOBALS['data'][$this->_name])) {
+            $this->fetchGlobal();
+        } else {
+            // no value has been set.
+            $this->_value = null;
+        }
+    }
 
 
-	/**
-	 * Internal name of element
-	 *
-	 * @see		setName()
-	 * @return 	string
-	 */
-	public function name() {
-		return $this->_name;
-	}
+    /**
+     * This method is going to fetch the value from global namespace
+     */
+    public function fetchGlobal(): void
+    {
+        $global = &$GLOBALS['data'][$this->_name];
+
+        $this->setDbValue($global);
+    }
 
 
-	/**
-	 * Internal name of element
-	 *
-	 * IMPORTANT: Changing this, will influence all fetching methods.
-	 *			  Already fetch values may reference to wrong request values.
-	 *
-	 * @see		name()
-	 * @param	string	$newValue		Name of element
-	 * @return	FormElement				Return $this for fluent interface (method chaining)
-	 */
-	public function setName( $newValue ) {
-		$this->_name	= trim($newValue);
+    /**
+     * This method is going to fetch the value from request
+     */
+    public function fetchRequest(): void
+    {
+        // The value was delivered by a request. Keep it like it is
+        $global = &$_REQUEST['data'][$this->_name];
 
-		return $this;
-	}
+        $this->_isValidated = false;
+        $this->setValue($global);
+    }
 
 
-	/**
-	 * Returns value in a DB compatible form
-	 *
-	 * @see 	setDbValue()
-	 * @see 	setDbColumnName()
-	 * @see 	dbValueMatrix()
-	 * @see 	returnDbValue()
-	 * @return 	Mixed
-	 */
-	public function dbValue() {
-		return $this->_value;
-	}
+    /**
+     * This method will validate the element's value against defined validation rules (e.g., not null, ...)
+     *
+     * @return  bool        TRUE if no errors occurred
+     * @see     setNotNull()
+     */
+    public function validate(): bool
+    {
+
+        $this->setError(false);
+
+        // elements like uploads and images will return arrays for value()
+        // so simply check, if the array is empty.
+        if ($this->notNull() && $this->isEmpty()) {
+            $this->setError('EMPTY VALUE');
+        }
+
+        $this->_isValidated = true;
+        return !$this->error();
+    }
 
 
-	/**
-	 * Sets value from a DB compatible format
-	 *
-	 * @see 	dbValue()
-	 * @see 	_fetchGlobal()
-	 * @param	mixed	$newValue		DB compatible value
-	 * @return	FormElement				Return $this for fluent interface (method chaining)
-	 */
-	public function setDbValue( $newValue ) {
-		if( !is_array($newValue) ) {
-			// value was delivered by DB. Keep it like it is.
-			$this->_value 	= $newValue;
-		} else {
-			// assume that this data has been delivered with related data
-			if( isset($newValue[0][$this->name()]) ) {
-				$this->_value	= $newValue[0][$this->name()];
-			} else {
-				$this->_value	= null;
-			}
-		}
-
-		return $this;
-	}
+    /**
+     * Internal name of the element
+     *
+     * @return string
+     * @see    setName()
+     */
+    public function name(): string
+    {
+        return $this->_name;
+    }
 
 
-	/**
-	 * Returns true if element's value is empty
-	 *
-	 * An empty value will usually not displayed in text mode.
-	 *
-	 * @return 	Mixed
-	 */
-	public function isEmpty() {
-		return empty($this->_value);
-	}
+    /**
+     * Internal name of the element
+     *
+     * IMPORTANT: Changing this will influence all fetching methods.
+     *            Already fetch values may reference to wrong request values.
+     *
+     * @param  string  $newValue  Name of element
+     * @return FormElement        Return $this for fluent interface (method chaining)
+     * @see    name()
+     */
+    public function setName(string $newValue): self
+    {
+        $this->_name = trim($newValue);
+
+        return $this;
+    }
 
 
-	#######################################################################
-	# output methods
-	#######################################################################
-	/**
-	 * Will return HTML compatible value used in form mode
-	 *
-	 * The text value is taken of {@link htmlText()}.
-	 *
-	 * @see		setValue()
-	 * @see		fetch()
-	 * @return	string					Encoded HTML value
-	 */
-	public function htmlValue() {
-		return htmlspecialchars( $this->value(), ENT_QUOTES, CHARSET, true );
-	} // function
+    /**
+     * Returns value in a DB compatible form
+     *
+     * @return mixed
+     * @see    setDbColumnName()
+     * @see    dbValueMatrix()
+     * @see    returnDbValue()
+     * @see    setDbValue()
+     */
+    public function dbValue()
+    {
+        return $this->_value;
+    }
 
 
-	/**
-	 * Generate HTML form output for element
-	 *
-	 * @return	string			HTML output
-	 */
-	public function htmlFormRow() {
-		$attr			= array();
+    /**
+     * Sets value from a DB compatible format
+     *
+     * @param  mixed  $newValue  DB compatible value
+     * @return FormElement       Return $this for fluent interface (method chaining)
+     * @see    dbValue()
+     * @see    _fetchGlobal()
+     */
+    public function setDbValue($newValue): self
+    {
+        if (!is_array($newValue)) {
+            // DB delivered the value. Keep it like it is.
+            $this->_value = $newValue;
+        } elseif (isset($newValue[0][$this->name()])) {
+            $this->_value = $newValue[0][$this->name()];
+        } else {
+            $this->_value = null;
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * Returns true if element's value is empty
+     *
+     * An empty value will usually not display in text mode.
+     *
+     * @return mixed
+     */
+    public function isEmpty(): bool
+    {
+        return empty($this->_value);
+    }
+
+
+    #######################################################################
+    # output methods
+    #######################################################################
+    /**
+     * Will return HTML compatible value used in form mode
+     *
+     * The text value is taken of {@link htmlText()}.
+     *
+     * @return string                    Encoded HTML value
+     * @see    fetch()
+     * @see    setValue()
+     */
+    public function htmlValue(): string
+    {
+        return htmlspecialchars((string)$this->value(), ENT_QUOTES, CHARSET);
+    } // function
+
+
+    /**
+     * Generate HTML form output for element
+     *
+     * @return string            HTML output
+     */
+    public function htmlFormRow(): string
+    {
+        $attr = [];
 //		$attr['class']	= $this->formClass();
 
-		$labelAttr	= Html::array2attributes( $attr );
+        $labelAttr = Html::array2attributes($attr);
 
-		$label	= '<label '.Html::array2attributes( $attr ).'>';
+        $label = '<label ' . Html::array2attributes($attr) . '>';
 
-		if( $this->hint() != '' ) {
-			// show help cursor when a hint is given and the mouse hovers above the label
-			$label	.= '<span style="cursor:help;" title="'.htmlentities( $this->hint(), ENT_QUOTES, CHARSET, true ).'">'.$this->label().'</span>';
-		} else {
-			$label	.= $this->label();
-		}
-		$label	.= '</label>';
+        if ($this->hint() !== '') {
+            // show help cursor when a hint is given and the mouse hovers above the label
+            $label .= '<span style="cursor:help;" title="' . htmlentities(
+                    $this->hint(),
+                    ENT_QUOTES,
+                    CHARSET
+                ) . '">' . $this->label() . '</span>';
+        } else {
+            $label .= $this->label();
+        }
+        $label .= '</label>';
 
 
-		if( $this->isEmpty() && $this->defaultValue() !== null ) {
-			$this->setDbValue( $this->defaultValue() );
-		}
+        if ($this->isEmpty() && $this->defaultValue() !== null) {
+            $this->setDbValue($this->defaultValue());
+        }
 
-		// define HTML attributes for input field
-		$attr	= array(
-			'type'			=> 'text',
-			'name'			=> 'data['.$this->name().']',
-			'value'			=> $this->htmlValue(),
+        // define HTML attributes for input field
+        $attr = [
+            'type'       => 'text',
+            'name'       => 'data[' . $this->name() . ']',
+            'value'      => $this->htmlValue(),
 //			'class'			=> $this->formClass(),
-			'onkeypress'	=> 'if( event.keyCode==13 || event.which==13) this.form.submit();'
-		);
+            'onkeypress' => 'if( event.keyCode==13 || event.which==13) this.form.submit();',
+        ];
 
-		$value	= '<input '.Html::array2attributes( $attr ).' />';
+        $value = '<input ' . Html::array2attributes($attr) . ' />';
 
-		$ret	= '
-		<tr><td '.$labelAttr.'>'.$label.'</td><td>'.$value.$this->htmlErrorMessage().'</td></tr>';
+        return '
+		<tr><td ' . $labelAttr . '>' . $label . '</td><td>' . $value . $this->htmlErrorMessage() . '</td></tr>';
+    }
 
-		return $ret;
-	}
-
-	/**
-	 * Return error message if error occurred
-	 *
-	 * @return	null|string			Error message
-	 */
-	public function htmlErrorMessage() {
-		if( $this->error() ) {
-			return '
+    /**
+     * Return error message if error occurred
+     *
+     * @return null|string            Error message
+     */
+    public function htmlErrorMessage(): ?string
+    {
+        if ($this->error()) {
+            return '
 			<br /><span style="color: red;">Invalid value.</span>';
-		}
+        }
 
-		return null;
-	}
-
-
-	#######################################################################
-	# accessor methods
-	#######################################################################
-	/**
-	 * Accessor
-	 *
-	 * @see		setHint()
-	 * @return	string		Mouse over help text
-	 */
-	public function hint() {
-		return $this->_hint;
-	}
+        return null;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * A mouse over hint which is put into a title tag around the label.
-	 * It will help the user to understand the meaning of the current element.
-	 *
-	 * @see		hint()
-	 * @param	string	$newValue		Mouse over help text
-	 * @return	FormElement				Return $this for fluent interface (method chaining)
-	 */
-	public function setHint( $newValue ) {
-		$this->_hint	= $newValue;
-
-		return $this;
-	}
+    #######################################################################
+    # accessor methods
+    #######################################################################
+    /**
+     * @return string        Mouse over help text
+     * @see    setHint()
+     */
+    public function hint(): string
+    {
+        return $this->_hint;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * @see		setNotNull()
-	 * @see		validate()
-	 * @return	boolean			TRUE forbids empty values, FALSE allows empty values
-	 */
-	public function notNull() {
-		return $this->_notNull;
-	}
+    /**
+     * A mouse over hint which is put into a title tag around the label.
+     * It will help the user to understand the meaning of the current element.
+     *
+     * @param  string  $newValue  Mouse over help text
+     * @return FormElement        Return $this for fluent interface (method chaining)
+     * @see    hint()
+     */
+    public function setHint(string $newValue): self
+    {
+        $this->_hint = $newValue;
+
+        return $this;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * Defines whether {@link value()} can be empty/null/unselected.
-	 * Might trigger an {@link setError()}.
-	 *
-	 * @see		notNull()
-	 * @see		validate()
-	 * @param	boolean	$newValue		TRUE forbids empty values, FALSE allows empty values
-	 * @return	FormElement				Return $this for fluent interface (method chaining)
-	 */
-	public function setNotNull( $newValue = true ) {
-		$this->_notNull	= (bool)$newValue;
-
-		return $this;
-	}
+    /**
+     * @return boolean            TRUE forbids empty values, FALSE allows empty values
+     * @see    validate()
+     * @see    setNotNull()
+     */
+    public function notNull(): bool
+    {
+        return $this->_notNull;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * @see		setError()
-	 * @return	bool
-	 */
-	public function error() {
-		return $this->_error;
-	}
+    /**
+     * Defines whether {@link value()} can be empty/null/unselected.
+     * Might trigger an {@link setError()}.
+     *
+     * @param  boolean  $newValue  TRUE forbids empty values, FALSE allows empty values
+     * @return FormElement         Return $this for fluent interface (method chaining)
+     * @see    notNull()
+     * @see    validate()
+     */
+    public function setNotNull(bool $newValue = true): self
+    {
+        $this->_notNull = $newValue;
 
-	/**
-	 * Accessor
-	 *
-	 * Flag which indicates a validation error.
-	 *
-	 * @see		error()
-	 * @param	mixed	$newValue		Boolean value or occurred error type
-	 * @return	FormElement				Return $this for fluent interface (method chaining)
-	 */
-	public function setError( $newValue = true ) {
-		$this->_error	= (bool) $newValue;
-
-		return $this;
-	}
+        return $this;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * @see		setValue()
-	 * @see		dbValue()
-	 * @see		fetch()
-	 * @return	Mixed		Current value
-	 */
-	public function value() {
-		return $this->_value;
-	}
+    /**
+     * @return    bool
+     * @see        setError()
+     */
+    public function error(): bool
+    {
+        return $this->_error;
+    }
+
+    /**
+     * Flag which indicates a validation error.
+     *
+     * @param  mixed  $newValue  Boolean value or occurred error type
+     * @return FormElement       Return $this for fluent interface (method chaining)
+     * @see    error()
+     */
+    public function setError($newValue = true): self
+    {
+        $this->_error = (bool)$newValue;
+
+        return $this;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * Will define element value. It is important to know, that this value might
-	 * appear in different forms and should be set using the {@link fetch()} method.
-	 * Different values depend on the data source (either DB or http request).
-	 * The value should not be read directly from this method in order to write
-	 * it into a DB. Use method {@link dbValue()} instead.
-	 *
-	 * @see		value()
-	 * @see		dbValue()
-	 * @see		fetch()
-	 * @see		_fetchRequest()
-	 * @param	mixed	$newValue		Input compatible value
-	 * @return	FormElement				Return $this for fluent interface (method chaining)
-	 */
-	public function setValue( $newValue ) {
-		if( !is_array($newValue) ) {
-			// value was delivered by DB. Keep it like it is.
-			$this->_value 	= $newValue;
-		} else {
-			// assume that this data has been delivered with related data
-			// just pick the dbColumnName
-			if( isset($newValue[0][$this->name()]) ) {
-				$this->_value	= $newValue[0][$this->name()];
-			} else {
-				$this->_value	= null;
-			}
-		} // if
-
-		return $this;
-	} // function
+    /**
+     * @return mixed        Current value
+     * @see    dbValue()
+     * @see    fetch()
+     * @see    setValue()
+     */
+    public function value()
+    {
+        return $this->_value;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * @see		setDefaultValue()
-	 * @return	string		Default value
-	 */
-	public function defaultValue() {
-		return $this->_default;
-	}
+    /**
+     * Will define element value
+     *
+     * It is important to know, that this value might appear in different forms and should be set using the
+     * {@link fetch()} method. Different values depend on the data source (either DB or http request). The value should
+     * not be read directly from this method in order to write it into a DB. Use method {@link dbValue()} instead.
+     *
+     * @param  mixed  $newValue  Input compatible value
+     * @return FormElement       Return $this for fluent interface (method chaining)
+     * @see    fetch()
+     * @see    _fetchRequest()
+     * @see    value()
+     * @see    dbValue()
+     */
+    public function setValue($newValue): self
+    {
+        if (!is_array($newValue)) {
+            // DB delivered the value. Keep it like it is.
+            $this->_value = $newValue;
+        } elseif (isset($newValue[0][$this->name()])) {
+            $this->_value = $newValue[0][$this->name()];
+        } else {
+            $this->_value = null;
+        } // if
+
+        return $this;
+    } // function
 
 
-	/**
-	 * Accessor
-	 *
-	 * If set to anything not empty, this value will be used in case form data is empty.
-	 * The use of this value depends on the form element object. Some objects (e.g. FormElementText)
-	 * will display this value instead of an empty html form.
-	 *
-	 * IMPORTANT: This value will not be used in text mode, but only activated in form mode.
-	 *
-	 * @see		defaultValue()
-	 * @param	string	$newValue		Default value
-	 * @return	FormElement				Return $this for fluent interface (method chaining)
-	 */
-	public function setDefaultValue( $newValue ) {
-		$this->_default	= $newValue;
-
-		return $this;
-	}
+    /**
+     * @return string        Default value
+     * @see    setDefaultValue()
+     */
+    public function defaultValue()
+    {
+        return $this->_default;
+    }
 
 
-	/**
-	 * Will return element label
-	 *
-	 * @see		setLabel()
-	 * @return	string		Element label
-	 */
-	public function label() {
-		return $this->_label;
-	}
+    /**
+     * If set to anything not empty, this value will be used in case form data is empty
+     *
+     * The use of this value depends on the form element object. Some objects (e.g., FormElementText)
+     * will display this value instead of an empty html form.
+     *
+     * IMPORTANT: This value will not be used in text mode, but only activated in form mode.
+     *
+     * @param  string  $newValue  Default value
+     * @return FormElement        Return $this for fluent interface (method chaining)
+     * @see    defaultValue()
+     */
+    public function setDefaultValue($newValue): self
+    {
+        $this->_default = $newValue;
+
+        return $this;
+    }
 
 
-	/**
-	 * Will define element label
-	 *
-	 * @see		label()
-	 * @param	string	$newValue			Element label
-	 * @return	FormElement					Return $this for fluent interface (method chaining)
-	 */
-	public function setLabel( $newValue ) {
-		$this->_label	= $newValue;
-
-		return $this;
-	}
+    /**
+     * Will return element label
+     *
+     * @return string        Element label
+     * @see    setLabel()
+     */
+    public function label(): string
+    {
+        return $this->_label;
+    }
 
 
+    /**
+     * Will define element label
+     *
+     * @param  string  $newValue  Element label
+     * @return FormElement        Return $this for fluent interface (method chaining)
+     * @see    label()
+     */
+    public function setLabel(string $newValue): self
+    {
+        $this->_label = $newValue;
 
+        return $this;
+    }
 }
-?>

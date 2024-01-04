@@ -24,65 +24,61 @@
 /**
  * Form Element Hidden Class
  *
- * @author		Oliver G. Mueller <mueller@teqneers.de>
- * @package		PHPKnock
- * @subpackage	Classes
- * @copyright	Copyright (C) 2003-2012 TEQneers GmbH & Co. KG. All rights reserved
+ * @author       Oliver G. Mueller <mueller@teqneers.de>
+ * @package      PHPKnock
+ * @subpackage   Classes
+ * @copyright    Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved
  */
 
 /**
  * Form Element Hidden Class
  *
- * This class represents a single html form element of type hidden.
+ * This class represents a single html form element of the type hidden.
  *
- * @package		PHPKnock
- * @subpackage	Classes
+ * @package       PHPKnock
+ * @subpackage    Classes
  */
-class FormElementHidden extends FormElement {
+class FormElementHidden extends FormElement
+{
 
-	#######################################################################
-	# attributes
-	#######################################################################
-
-
-	#######################################################################
-	# methods
-	#######################################################################
+    #######################################################################
+    # attributes
+    #######################################################################
 
 
-
-	#######################################################################
-	# data methods
-	#######################################################################
-
-
-	#######################################################################
-	# output methods
-	#######################################################################
-	public function htmlFormRow() {
-		if( $this->isEmpty() && $this->defaultValue() !== null ) {
-			$this->setDbValue( $this->defaultValue() );
-		}
-
-		// define HTML attributes for input field
-		$attr	= array(
-			'type'		=> 'hidden',
-			'name'		=> 'data['.$this->name().']',
-			'value'		=> $this->htmlValue()
-		);
-
-		$ret	= '
-		<input '.Html::array2attributes( $attr ).' />';
-
-		return $ret;
-	}
+    #######################################################################
+    # methods
+    #######################################################################
 
 
-	#######################################################################
-	# accessor methods
-	#######################################################################
+    #######################################################################
+    # data methods
+    #######################################################################
 
 
+    #######################################################################
+    # output methods
+    #######################################################################
+    public function htmlFormRow(): string
+    {
+        if ($this->isEmpty() && $this->defaultValue() !== null) {
+            $this->setDbValue($this->defaultValue());
+        }
+
+        // define HTML attributes for input field
+        $attr = array(
+            'type' => 'hidden',
+            'name' => 'data[' . $this->name() . ']',
+            'value' => $this->htmlValue()
+        );
+
+        return '
+        <input ' . Html::array2attributes($attr) . ' />';
+    }
+
+
+    #######################################################################
+    # accessor methods
+    #######################################################################
 
 }
-?>

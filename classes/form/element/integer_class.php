@@ -24,10 +24,10 @@
 /**
  * Form Element Integer Class
  *
- * @author		Oliver G. Mueller <mueller@teqneers.de>
- * @package		PHPKnock
- * @subpackage	Classes
- * @copyright	Copyright (C) 2003-2012 TEQneers GmbH & Co. KG. All rights reserved
+ * @author      Oliver G. Mueller <mueller@teqneers.de>
+ * @package     PHPKnock
+ * @subpackage  Classes
+ * @copyright   Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved
  */
 
 /**
@@ -35,170 +35,153 @@
  *
  * This class represents a single html form element of type integer.
  *
- * @package		PHPKnock
- * @subpackage	Classes
+ * @package      PHPKnock
+ * @subpackage   Classes
  */
-class FormElementInteger extends FormElement {
+class FormElementInteger extends FormElement
+{
 
-	#######################################################################
-	# Attributes
-	#######################################################################
-	/**
-	 * Defines the minimum valid value
-	 *
-	 * @var		integer
-	 */
-	protected $_minValue;
-
-
-	/**
-	 * Defines the maximum valid value
-	 *
-	 * @var		integer
-	 */
-	protected $_maxValue;
+    #######################################################################
+    # Attributes
+    #######################################################################
+    /**
+     * Defines the minimum valid value
+     */
+    protected ?int $_minValue;
 
 
-	#######################################################################
-	# methods
-	#######################################################################
-	/**
-	 * CONSTRUCTOR
-	 *
-	 * @param	string	$name			Name of form
-	 * @param	string	$label			Label content
-	 */
-	function __construct( $name, $label ) {
-		$this->_name	= $name;
-		$this->_label	= $label;
-	}
+    /**
+     * Defines the maximum valid value
+     */
+    protected ?int $_maxValue;
 
 
-	#######################################################################
-	# data methods
-	#######################################################################
-	/**
-	 * This function will validate the element's value against defined validation rules (e.g. not null, ...)
-	 *
-	 * @see		setNotNull()
-	 * @see		FormElement::validate()
-	 * @return	boolean		TRUE if no errors occurred
-	 */
-	public function validate() {
-		$this->setError( false );
-
-		$this->setValue( trim($this->value()) );
-
-		// when not null is false and value is null return true and set value to null
-		// otherwise return false
-		if( $this->isEmpty() ) {
-			if( $this->notNull() ) {
-				$this->setError( 'EMPTY VALUE');
-			}
-			$this->setValue( null );
-
-			return !$this->error();
-		}
-
-		// check chars
-		$search	= '/^[-+]?[0-9]+$/i';
-		if( !preg_match( $search, $this->value() ) ) {
-			// invalid format
-			$this->setError( 'INVALID FORMAT');
-		} // if
-
-		$floatValue	= floatval( $this->value() );
-
-		// check minimum limit
-		if( !$this->isEmpty() && strlen($this->minimum()) > 0 && $floatValue < $this->minimum() ) {
-			$this->setError( 'MIN EXCEEDED');
-		}
-
-		// check maximum limit
-		if( !$this->isEmpty() && strlen($this->maximum()) > 0 && $floatValue > $this->maximum() ) {
-			$this->setError( 'MAX EXCEEDED');
-		}
-
-		$this->_isValidated	= true;
-		return !$this->error();
-	}
+    #######################################################################
+    # methods
+    #######################################################################
+    /**
+     * @param  string  $name   Name of form
+     * @param  string  $label  Label content
+     */
+    public function __construct(string $name, string $label)
+    {
+        parent::__construct($name);
+        $this->_label = $label;
+    }
 
 
-	/**
-	 * Returns true if element's value is empty
-	 *
-	 * An empty value will usually not displayed in text mode.
-	 *
-	 * @return 	Mixed
-	 */
-	public function isEmpty() {
-		return ($this->value() === null || trim($this->value()) === '');
-	}
+    #######################################################################
+    # data methods
+    #######################################################################
+    /**
+     * This function will validate the element's value against defined validation rules (e.g. not null, ...)
+     *
+     * @return boolean        TRUE if no errors occurred
+     * @see    FormElement::validate()
+     * @see    setNotNull()
+     */
+    public function validate(): bool
+    {
+        $this->setError(false);
+
+        $this->setValue(trim($this->value()));
+
+        // when notNull is false, and value is null return true and set value to null,
+        // otherwise return false
+        if ($this->isEmpty()) {
+            if ($this->notNull()) {
+                $this->setError('EMPTY VALUE');
+            }
+            $this->setValue(null);
+
+            return !$this->error();
+        }
+
+        // check chars
+        $search = '(^[-+]?\d+$)';
+        if (!preg_match($search, $this->value())) {
+            // invalid format
+            $this->setError('INVALID FORMAT');
+        } // if
+
+        $floatValue = (float)$this->value();
+
+        // check minimum limit
+        if (!$this->isEmpty() && $this->minimum() !== null && $floatValue < $this->minimum()) {
+            $this->setError('MIN EXCEEDED');
+        }
+
+        // check maximum limit
+        if (!$this->isEmpty() && $this->maximum() !== null && $floatValue > $this->maximum()) {
+            $this->setError('MAX EXCEEDED');
+        }
+
+        $this->_isValidated = true;
+        return !$this->error();
+    }
 
 
-	#######################################################################
-	# output methods
-	#######################################################################
+    /**
+     * Returns true if element's value is empty
+     *
+     * An empty value will usually not display in text mode.
+     *
+     * @return mixed
+     */
+    public function isEmpty(): bool
+    {
+        return ($this->value() === null || trim($this->value()) === '');
+    }
 
 
-	#######################################################################
-	# accessor methods
-	#######################################################################
-	/**
-	 * Accessor
-	 *
-	 * @see		setMinimum()
-	 * @return	float
-	 */
-	public function minimum() {
-		return $this->_minValue;
-	}
+    #######################################################################
+    # output methods
+    #######################################################################
 
 
-	/**
-	 * Accessor
-	 *
-	 * Defines the minimum valid value.
-	 *
-	 * @see		minimum()
-	 * @see		validate()
-	 * @param	float	$value			Inclusive minimum value
-	 * @return	FormElementInteger		Return $this for fluent interface (method chaining)
-	 */
-	public function setMinimum( $value ) {
-		$this->_minValue	= $value;
-
-		return $this;
-	}
+    #######################################################################
+    # accessor methods
+    #######################################################################
+    public function minimum(): ?int
+    {
+        return $this->_minValue;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * @see		setMaximum()
-	 * @return	float
-	 */
-	public function maximum() {
-		return $this->_maxValue;
-	}
+    /**
+     * Defines the minimum valid value.
+     *
+     * @param ?int  $value  Inclusive minimum value
+     * @see   minimum()
+     * @see   validate()
+     */
+    public function setMinimum(?int $value): self
+    {
+        $this->_minValue = $value;
+
+        return $this;
+    }
 
 
-	/**
-	 * Accessor
-	 *
-	 * Defines the maximum valid value.
-	 *
-	 * @see		maximum()
-	 * @see		validate()
-	 * @param	float	$value			Inclusive maximum value
-	 * @return	FormElementInteger		Return $this for fluent interface (method chaining)
-	 */
-	public function setMaximum( $value ) {
-		$this->_maxValue	= $value;
+    public function maximum(): ?int
+    {
+        return $this->_maxValue;
+    }
 
-		return $this;
-	}
+
+    /**
+     * Defines the maximum valid value.
+     *
+     * @param ?int  $value  Inclusive maximum value
+     * @see   maximum()
+     * @see   validate()
+     */
+    public function setMaximum(?int $value): self
+    {
+        $this->_maxValue = $value;
+
+        return $this;
+    }
 
 
 }
-?>

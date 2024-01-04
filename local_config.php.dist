@@ -1,7 +1,7 @@
 <?php
 /**
- * This template configuration file should be copy to
- * local_config.php. Afterwards it needs to be configured.
+ * This template configuration file should be copied to
+ * local_config.php. Afterward, it needs to be configured.
  */
 
 error_reporting( E_ALL | E_STRICT );
@@ -16,11 +16,11 @@ error_reporting( E_ALL | E_STRICT );
  *
  * For security reasons, it is NOT a good idea to put your
  * whole PHPKnock directory into your document root of your
- * web server. Instead you should put it somewhere else
+ * web server. Instead, you should put it somewhere else
  * and use an alias to PHPKnock's htdocs folder.
  *
  * Example for your Apache configuration:
- * "Alias /phpknock		/opt/phpknock/htdocs"
+ * "Alias /phpknock /opt/phpknock/htdocs"
  * For more information visit
  * http://httpd.apache.org/docs/2.2/mod/mod_alias.html#alias
  *
@@ -30,7 +30,7 @@ $PATH_APPLICATION = '/phpknock';
 
 
 /**
- * Limit all web request to use the secure HTTPS protocol.
+ * Limit all web requests to use the secure HTTPS protocol.
  *
  * If this is set to true, PHPKnock will not work with HTTP
  * anymore, but only with HTTPS. If set to false, the
@@ -59,7 +59,7 @@ $FWKNOP_CLI = '/usr/bin/fwknop';
  * Encryption key used to connect to server.
  *
  * If this parameter is set to null, it will request the user to
- * type in decryption key.
+ * type in a decryption key.
  *
  * Default: null
  */
@@ -76,7 +76,7 @@ $ENCRYPTION_KEY = null;
  * the destination is static and cannot be changed by the user.
  *
  * If set to an array like
- * array( 'merkur' => '10.0.0.1', 'mars' => '10.0.0.2', 'venus' => '10.0.0.3' );
+ * ['10.0.0.1' => 'merkur server', 'mars.domain.tld' => 'prod server', 'venus' => 'dev env'];
  * the user will be able to select one of the servers.
  *
  * Default: null
@@ -102,7 +102,7 @@ $ACCESS_PORT_LIST = 'tcp/22';
 
 /**
  * Specify the port number where fwknopd accepts packets
- * via libpcap or ulogd pcap writer. By default fwknopd looks for
+ * via libpcap or ulogd pcap writer. By default, fwknopd looks for
  * authorization packets over UDP port 62201.
  *
  * If this parameter is set to null, it will allow the user to
@@ -127,7 +127,7 @@ $SERVER_PORT = 62201;
  *
  * Default: $PATH_FS_APPLICATION.'/error.log'
  */
-$ERRORS_LOG = $PATH_FS_APPLICATION.'/error.log';
+$ERRORS_LOG = __DIR__.'/error.log';
 
 
 /**
@@ -137,5 +137,3 @@ $ERRORS_LOG = $PATH_FS_APPLICATION.'/error.log';
  * Default: false
  */
 $ERRORS_VERBOSE = false;
-
-?>
