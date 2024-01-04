@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2012 by TEQneers GmbH & Co. KG
+ * Copyright (C) 2012-2024 by TEQneers GmbH & Co. KG
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,17 @@
 /**
  * Standard Functions
  *
- * @author        Oliver G. Mueller <mueller@teqneers.de>
+ * @author         Oliver G. Mueller <mueller@teqneers.de>
  * @package        PHPKnock
- * @subpackage    base
- * @copyright    Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved.
+ * @subpackage     base
+ * @copyright      Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved.
  */
 
 
 /**
  * This method will automatically load classes
  *
- * @param string $class Name of class
+ * @param  string  $class  Name of class
  * @return    bool                TRUE on successful inclusion, FALSE otherwise
  */
 function autoload(string $class): bool
@@ -47,14 +47,18 @@ function autoload(string $class): bool
             array_pop($path[1]);
         }
 
-        $i = count($path[1]);
+        $i        = count($path[1]);
         $filename = '';
-        $found = false;
+        $found    = false;
         do {
             $filename = empty($filename) ? array_pop($path[1]) : array_pop($path[1]) . '_' . $filename;
-            $include = __DIR__ . '/classes/' . strtolower(implode('/',
-                        $path[1]) . '/' . $filename) . '_' . $type . '.php';
-            $found = file_exists($include);
+            $include  = __DIR__ . '/classes/' . strtolower(
+                    implode(
+                        '/',
+                        $path[1]
+                    ) . '/' . $filename
+                ) . '_' . $type . '.php';
+            $found    = file_exists($include);
         } while (!$found && count($path[1]));
 
         if ($found) {
@@ -72,8 +76,8 @@ function autoload(string $class): bool
 /**
  * Var_dump replacement
  *
- * @param mixed $dump Dump var
- * @param string|null $name Dump name
+ * @param  mixed        $dump  Dump var
+ * @param  string|null  $name  Dump name
  */
 function vd(mixed $dump, ?string $name = null): void
 {
@@ -82,15 +86,15 @@ function vd(mixed $dump, ?string $name = null): void
         if (empty($GLOBALS['jsDebugDragNDropHandling']) || !is_array($GLOBALS['jsDebugDragNDropHandling'])) {
             $GLOBALS['jsDebugDragNDropHandling'] = [];
         }
-        $uniqueId = count($GLOBALS['jsDebugDragNDropHandling']);
+        $uniqueId                              = count($GLOBALS['jsDebugDragNDropHandling']);
         $GLOBALS['jsDebugDragNDropHandling'][] = 'jsDebug' . $uniqueId;
 
         if ($name === null) {
             $backtrace = debug_backtrace();
-            $tmp = explode(DIRECTORY_SEPARATOR, $backtrace[0]['file']);
-            $lastDir = (count($tmp) > 1) ? ($tmp[count($tmp) - 2] . '/') : '';
-            $name = $lastDir . basename($backtrace[0]['file']) . ' [line ' . $backtrace[0]['line'] . '] ';
-            $name .= $uniqueId + 1;
+            $tmp       = explode(DIRECTORY_SEPARATOR, $backtrace[0]['file']);
+            $lastDir   = (count($tmp) > 1) ? ($tmp[count($tmp) - 2] . '/') : '';
+            $name      = $lastDir . basename($backtrace[0]['file']) . ' [line ' . $backtrace[0]['line'] . '] ';
+            $name      .= $uniqueId + 1;
         } else {
             $name .= ' [' . ($uniqueId + 1) . ']';
         }
@@ -126,8 +130,8 @@ function vd(mixed $dump, ?string $name = null): void
  *
  * Print_r replacement
  *
- * @param mixed $dump Dump var
- * @param string|null $name Dump name
+ * @param  mixed        $dump  Dump var
+ * @param  string|null  $name  Dump name
  */
 function pr(mixed $dump, ?string $name = null): void
 {
@@ -136,15 +140,15 @@ function pr(mixed $dump, ?string $name = null): void
         if (empty($GLOBALS['jsDebugDragNDropHandling']) || !is_array($GLOBALS['jsDebugDragNDropHandling'])) {
             $GLOBALS['jsDebugDragNDropHandling'] = [];
         }
-        $uniqueId = count($GLOBALS['jsDebugDragNDropHandling']);
+        $uniqueId                              = count($GLOBALS['jsDebugDragNDropHandling']);
         $GLOBALS['jsDebugDragNDropHandling'][] = 'jsDebug' . $uniqueId;
 
         if ($name === null) {
             $backtrace = debug_backtrace();
-            $tmp = explode(DIRECTORY_SEPARATOR, $backtrace[0]['file']);
-            $lastDir = (count($tmp) > 1) ? ($tmp[count($tmp) - 2] . '/') : '';
-            $name = $lastDir . basename($backtrace[0]['file']) . ' [line ' . $backtrace[0]['line'] . '] ';
-            $name .= $uniqueId + 1;
+            $tmp       = explode(DIRECTORY_SEPARATOR, $backtrace[0]['file']);
+            $lastDir   = (count($tmp) > 1) ? ($tmp[count($tmp) - 2] . '/') : '';
+            $name      = $lastDir . basename($backtrace[0]['file']) . ' [line ' . $backtrace[0]['line'] . '] ';
+            $name      .= $uniqueId + 1;
         } else {
             $name .= ' [' . ($uniqueId + 1) . ']';
         }
