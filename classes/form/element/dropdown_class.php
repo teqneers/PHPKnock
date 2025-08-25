@@ -252,7 +252,6 @@ class FormElementDropdown extends FormElement
         }
 
         // if notNull is set and no value is set, an error will occur
-        var_dump($this->value());
         if ($this->notNull() && ($this->value() === null || count($this->value()) === 0)) {
             $this->setError('EMPTY VALUE');
         }
