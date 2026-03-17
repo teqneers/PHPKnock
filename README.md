@@ -1,4 +1,4 @@
-<p align="center">
+<p style="text-align:center;">
   <img src="app/public/static/images/phpknock.png" alt="PHPKnock" width="200" />
 </p>
 
