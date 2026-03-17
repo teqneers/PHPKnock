@@ -60,6 +60,8 @@ if (($v = getenv('PHPKNOCK_DESTINATION')) !== false) {
         $DESTINATION = $v;
     }
 }
+$RATE_LIMIT          = ($v = getenv('PHPKNOCK_RATE_LIMIT'))  !== false ? (int)$v : 10;
+$RATE_WINDOW         = ($v = getenv('PHPKNOCK_RATE_WINDOW')) !== false ? (int)$v : 60;
 
 // local_config.php is optional — overrides any value set above
 $pathLocalConfig = __DIR__ . '/../local_config.php';
@@ -115,6 +117,18 @@ const CHARSET = 'UTF-8';
 #############################################################################
 spl_autoload_register('autoload');
 
+// Start session for CSRF protection (web only)
+if (!CLI_CALL && session_status() === PHP_SESSION_NONE) {
+    session_start([
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Strict',
+        'cookie_secure'   => USE_HTTPS_ONLY,
+    ]);
+}
+if (!CLI_CALL && empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 #############################################################################
 ###	FUNCTIONS
 #############################################################################
@@ -140,6 +154,57 @@ if (function_exists('pcntl_signal')) {
 
     $cleanup = new CleanUp();
 }
+
+/**
+ * Checks per-IP rate limit using a file lock in PATH_FS_TMP.
+ *
+ * Returns true when the request is within the allowed limit, false when exceeded.
+ */
+function checkRateLimit(string $ip, int $limit, int $window): bool
+{
+    $file = PATH_FS_TMP . '/rl_' . md5($ip) . '.json';
+    $fh   = @fopen($file, 'c+');
+    if ($fh === false) {
+        return true; // fail open: don't block if tmp is unexpectedly unwritable
+    }
+
+    flock($fh, LOCK_EX);
+
+    $content = stream_get_contents($fh);
+    $data    = $content ? json_decode($content, true) : null;
+    $now     = time();
+
+    if (!$data || ($now - $data['since']) >= $window) {
+        $data = ['count' => 0, 'since' => $now];
+    }
+    $data['count']++;
+
+    ftruncate($fh, 0);
+    rewind($fh);
+    fwrite($fh, json_encode($data));
+    flock($fh, LOCK_UN);
+    fclose($fh);
+
+    return $data['count'] <= $limit;
+}
+
+
+/**
+ * Returns true when $host is a valid IPv4/IPv6 address or a valid RFC 1123 hostname.
+ */
+function isValidHost(string $host): bool
+{
+    if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+        return true;
+    }
+    // RFC 1123: each label 1-63 chars (letters, digits, hyphens), total ≤ 253
+    return strlen($host) <= 253
+        && (bool)preg_match(
+            '/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$/',
+            $host
+        );
+}
+
 
 /**
  * Builds and returns form
@@ -194,6 +259,9 @@ function form(): Form
     $form->factory('Hidden', 'doKnock')
          ->setDefaultValue(1);
 
+    $form->factory('Hidden', 'csrfToken')
+         ->setDefaultValue(!CLI_CALL ? ($_SESSION['csrf_token'] ?? '') : '');
+
     return $form;
 }
 
@@ -227,6 +295,23 @@ if (!is_writable(PATH_FS_TMP)) {
 #############################################################################
 ###	ACTION
 #############################################################################
+if (!$error && $form->element('doKnock')->value() === '1') {
+    // CSRF check
+    if (!CLI_CALL && !hash_equals(
+        (string)($_SESSION['csrf_token'] ?? ''),
+        (string)$form->element('csrfToken')->value()
+    )) {
+        $message->addError('Invalid or expired request token. Please reload the page and try again.');
+        $error = true;
+    }
+
+    // Rate limit check
+    if (!$error && !checkRateLimit($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0', $RATE_LIMIT, $RATE_WINDOW)) {
+        $message->addError('Too many requests. Please wait before trying again.');
+        $error = true;
+    }
+}
+
 if (!$error && $form->element('doKnock')->value() === '1' && $form->validate()) {
     $encryptionKey = $ENCRYPTION_KEY ?? $form->element('encryptionKey')->dbValue();
 
@@ -294,6 +379,11 @@ if (!$error && $form->element('doKnock')->value() === '1' && $form->validate()) 
     ];
 
     foreach ($hosts as $target) {
+        if (!isValidHost($target)) {
+            $message->addError('Invalid destination: "' . htmlspecialchars($target, ENT_QUOTES, CHARSET) . '".');
+            continue;
+        }
+
         file_put_contents(PATH_FS_PASSWORD, $target . ':' . $encryptionKey);
         chmod(PATH_FS_PASSWORD, 0600);
 

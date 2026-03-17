@@ -12,6 +12,20 @@
 For background reading, see Wikipedia on [port knocking](http://en.wikipedia.org/wiki/Port_knocking) and [Single Packet Authorization](http://en.wikipedia.org/wiki/Single_Packet_Authorization).
 
 
+Features
+--------
+
+- **Single Packet Authorization** via [fwknop](https://cipherdyne.org/fwknop/) — no fwknop installation required on the client device
+- **Flexible destination configuration** — free-text input, a fixed server set in config, or a named dropdown list
+- **Multi-host knocking** — knock multiple servers in one submit (semicolon-separated or dropdown multi-select)
+- **CSRF protection** — synchronizer token validated on every form submission
+- **Per-IP rate limiting** — configurable attempt limit and time window to prevent abuse
+- **Destination validation** — user-supplied hosts are validated as a proper IP address or RFC 1123 hostname before being passed to fwknop
+- **Encryption key handling** — key is written to a temp file (`chmod 0600`) and passed to fwknop via `-G`; never appears on the command line
+- **Docker / FrankenPHP support** — zero-config container deployment; all settings via environment variables
+- **No build tools or Composer required** for production — plain PHP, no framework
+
+
 Requirements
 ------------
 
@@ -45,6 +59,8 @@ No config file is required. All settings are controlled via environment variable
 | `PHPKNOCK_ENCRYPTION_KEY` | _(none)_ | Fixed encryption key; omit to let the user enter it in the browser |
 | `PHPKNOCK_DESTINATION` | _(none)_ | Fixed destination IP/hostname, a semicolon-separated list for multiple hosts, or a JSON object (`{"10.0.0.1":"prod","10.0.0.2":"dev"}`) for a dropdown; omit to show a free-text input |
 | `PHPKNOCK_ERRORS_VERBOSE` | `false` | Show fwknop command and raw output in the browser |
+| `PHPKNOCK_RATE_LIMIT` | `10` | Max knock attempts per IP per window (0 = disabled) |
+| `PHPKNOCK_RATE_WINDOW` | `60` | Rate limit window in seconds |
 
 ### Option B — Traditional web server
 

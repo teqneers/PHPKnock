@@ -99,6 +99,31 @@ $SERVER_PORT = 62201;
 
 
 #############################################################################
+# RATE LIMITING
+#############################################################################
+/**
+ * Maximum number of knock attempts allowed per IP address within the rate
+ * limit window before further requests are rejected.
+ *
+ * Set to 0 to disable rate limiting entirely.
+ *
+ * Default: 10
+ */
+$RATE_LIMIT = 10;
+
+
+/**
+ * Duration of the rate limit window in seconds.
+ *
+ * The attempt counter for each IP resets automatically once this many seconds
+ * have passed since the first request in that window.
+ *
+ * Default: 60
+ */
+$RATE_WINDOW = 60;
+
+
+#############################################################################
 # DEBUGGING AND ERROR CONFIGURATION
 #############################################################################
 /**
