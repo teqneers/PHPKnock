@@ -1,16 +1,25 @@
-.idea
+# Runtime data
 tmp/*
-error.log
+app/error.log
 
-# Ignore all the configuration files
-local_config.php
+# User configuration
+app/local_config.php
 
-# Keep all the .gitkeep files
-!.gitkeep
+# Composer dependencies
+app/vendor/
 
-# Ignore common crap
-.DS_Store
-.netbeans
-Thumbs.db
-*.swp
+# PHPUnit
+app/.phpunit.result.cache
+
+# IDEs and editors
+.idea/
+.netbeans/
 .vimrc
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Keep placeholder files
+!.gitkeep
