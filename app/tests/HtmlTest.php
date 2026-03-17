@@ -62,4 +62,64 @@ class HtmlTest extends TestCase
         $this->assertStringContainsString('lang="de"', $header);
         $this->assertStringNotContainsString('xml:lang', $header);
     }
+
+    public function testHeaderContainsTitle(): void
+    {
+        $html = new Html();
+        $html->setTitle('My Page');
+
+        $header = $html->header();
+
+        $this->assertStringContainsString('<title>My Page</title>', $header);
+    }
+
+    public function testHeaderContainsStylesheetLink(): void
+    {
+        $html = new Html();
+        $html->setTitle('Test');
+        $html->addStyleSheet('static/default.css');
+
+        $header = $html->header();
+
+        $this->assertStringContainsString('static/default.css', $header);
+        $this->assertStringContainsString('rel="stylesheet"', $header);
+    }
+
+    public function testHeaderContainsFavicon(): void
+    {
+        $html = new Html();
+        $html->setTitle('Test');
+        $html->setFavicon('static/favicon.ico');
+
+        $header = $html->header();
+
+        $this->assertStringContainsString('static/favicon.ico', $header);
+    }
+
+    public function testFooterContainsClosingHtmlTag(): void
+    {
+        $html = new Html();
+
+        $this->assertStringContainsString('</html>', $html->footer());
+    }
+
+    public function testArray2attributesRecursiveArray(): void
+    {
+        // Nested array value should itself be rendered as attributes
+        $result = Html::array2attributes(['data' => ['foo' => 'bar']]);
+
+        $this->assertStringContainsString('foo="bar"', $result);
+    }
+
+    public function testLangAttributeIsEscaped(): void
+    {
+        $html = new Html();
+        $html->setTitle('Test');
+        $html->setLanguage('de"evil');
+
+        $header = $html->header();
+
+        $this->assertStringNotContainsString('lang="de"evil"', $header);
+        $this->assertStringContainsString('&quot;', $header);
+    }
 }

@@ -187,4 +187,70 @@ class MessageTest extends TestCase
 
         $this->assertFalse($this->message->hasErrors());
     }
+
+    public function testHasMessagesReturnsTrueWhenPresent(): void
+    {
+        $this->message->addMessage('hello');
+
+        $this->assertTrue($this->message->hasMessages());
+    }
+
+    public function testHasMessagesReturnsFalseWhenEmpty(): void
+    {
+        $this->assertFalse($this->message->hasMessages());
+    }
+
+    public function testHasErrorsReturnsTrueWhenPresent(): void
+    {
+        $this->message->addError('oops');
+
+        $this->assertTrue($this->message->hasErrors());
+    }
+
+    public function testHasErrorsReturnsFalseWhenEmpty(): void
+    {
+        $this->assertFalse($this->message->hasErrors());
+    }
+
+    public function testHasWarningsReturnsTrueWhenPresent(): void
+    {
+        $this->message->addWarning('careful');
+
+        $this->assertTrue($this->message->hasWarnings());
+    }
+
+    public function testHasWarningsReturnsFalseWhenEmpty(): void
+    {
+        $this->assertFalse($this->message->hasWarnings());
+    }
+
+    public function testHasNoticesReturnsTrueWhenPresent(): void
+    {
+        $this->message->addNotice('fyi');
+
+        $this->assertTrue($this->message->hasNotices());
+    }
+
+    public function testHasNoticesReturnsFalseWhenEmpty(): void
+    {
+        $this->assertFalse($this->message->hasNotices());
+    }
+
+    public function testEmptyMessageIsNotAdded(): void
+    {
+        $this->message->addMessage('');
+
+        $this->assertFalse($this->message->hasMessages());
+    }
+
+    public function testGetWithNullDefaultsToAll(): void
+    {
+        $this->message->addError('err');
+        $this->message->addMessage('msg');
+
+        $result = $this->message->get(null, false);
+
+        $this->assertArrayHasKey('error', $result);
+        $this->assertArrayHasKey('message', $result);
+    }
 }

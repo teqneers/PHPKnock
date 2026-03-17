@@ -9,8 +9,9 @@ ENV PHPKNOCK_FWKNOP_CLI=/usr/bin/fwknop \
     PHPKNOCK_PATH_APPLICATION=/
 
 COPY Caddyfile /etc/caddy/Caddyfile
+RUN mkdir -p /web/tmp
 
-WORKDIR /app
+WORKDIR /web
 
 EXPOSE 80
 EXPOSE 443

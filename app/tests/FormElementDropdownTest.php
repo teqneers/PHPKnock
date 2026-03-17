@@ -106,4 +106,95 @@ class FormElementDropdownTest extends TestCase
 
         $this->assertFalse($el->isEmpty());
     }
+
+    public function testSetDbValueFlatArray(): void
+    {
+        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el->setDbValue(['us', 'de']);
+
+        $this->assertSame(['us', 'de'], $el->value());
+    }
+
+    public function testSetDbValueMatrixExtractsColumn(): void
+    {
+        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el->setDbValue([
+            ['country' => 'us'],
+            ['country' => 'de'],
+        ]);
+
+        $this->assertSame(['us', 'de'], $el->value());
+    }
+
+    public function testValidateRemovesEmptyStringFromArray(): void
+    {
+        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el->setValue(['us', '', 'de']);
+
+        $el->validate();
+
+        // after validate the empty string should be gone
+        $this->assertNotContains('', (array)$el->value());
+    }
+
+    public function testValidateConvertsEmptyStringValueToNull(): void
+    {
+        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el->setValue('');
+
+        $el->validate();
+
+        $this->assertTrue($el->isEmpty());
+    }
+
+    public function testSetIsMultipleAutoSetsMaximumSize(): void
+    {
+        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el->setIsMultiple(true);
+
+        $this->assertNotNull($el->maximumSize());
+        $this->assertGreaterThan(1, $el->maximumSize());
+    }
+
+    public function testSetSizeOneDisablesMultiple(): void
+    {
+        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el->setIsMultiple(true);
+        $el->setSize(1);
+
+        $this->assertFalse($el->isMultiple());
+    }
+
+    public function testHtmlFormRowMultipleSelectHasArrayName(): void
+    {
+        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el->setIsMultiple(true);
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('name="data[country][]"', $html);
+    }
+
+    public function testDynamicSizeCappedAtMaximumSize(): void
+    {
+        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el->setMaximumSize(2); // 3 options, capped at 2
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('size="2"', $html);
+    }
+
+    public function testZeroValueOptionNotMistakenlSelected(): void
+    {
+        $el = new FormElementDropdown('num', 'Number', ['0' => 'Zero', '1' => 'One']);
+        $el->setValue('1');
+
+        $html = $el->htmlFormRow();
+
+        // '0' must NOT be selected
+        $this->assertDoesNotMatchRegularExpression('/value="0"[^>]*selected/', $html);
+        // '1' must be selected
+        $this->assertMatchesRegularExpression('/value="1"[^>]*selected|selected[^>]*value="1"/', $html);
+    }
 }

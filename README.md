@@ -25,19 +25,26 @@ Installation
 
 ### Option A — Docker (recommended)
 
-1. Copy and configure the config file:
-   ```bash
-   cp app/local_config.php.dist app/local_config.php
-   vi app/local_config.php
-   ```
+No config file is required. All settings are controlled via environment variables set in `docker/compose.yaml`.
+
+1. Edit `docker/compose.yaml` and set the environment variables for your setup (see table below).
 
 2. Start the container from the `docker/` directory:
    ```bash
+   cd docker
    docker compose up -d
    ```
 
-   fwknop is installed automatically inside the container. The `tmp/` directory is bind-mounted from the project root.
+#### Environment variables
 
+| Variable | Default | Description |
+|---|---|---|
+| `PHPKNOCK_SERVER_PORT` | `62201` | UDP port fwknopd listens on |
+| `PHPKNOCK_ACCESS_PORT_LIST` | `tcp/22` | Ports to request access to (e.g. `tcp/22,udp/53`) |
+| `PHPKNOCK_USE_HTTPS_ONLY` | `false` | Redirect HTTP → HTTPS |
+| `PHPKNOCK_ENCRYPTION_KEY` | _(none)_ | Fixed encryption key; omit to let the user enter it in the browser |
+| `PHPKNOCK_DESTINATION` | _(none)_ | Fixed destination IP/hostname, a semicolon-separated list for multiple hosts, or a JSON object (`{"10.0.0.1":"prod","10.0.0.2":"dev"}`) for a dropdown; omit to show a free-text input |
+| `PHPKNOCK_ERRORS_VERBOSE` | `false` | Show fwknop command and raw output in the browser |
 
 ### Option B — Traditional web server
 

@@ -80,4 +80,77 @@ class FormElementTest extends TestCase
 
         $this->assertSame('default', $el->defaultValue());
     }
+
+    public function testIsEmptyTrueWhenNoValue(): void
+    {
+        $el = new FormElementText('field', 'Field');
+
+        $this->assertTrue($el->isEmpty());
+    }
+
+    public function testIsEmptyFalseWhenValueSet(): void
+    {
+        $el = new FormElementText('field', 'Field');
+        $el->setValue('hello');
+
+        $this->assertFalse($el->isEmpty());
+    }
+
+    public function testHtmlValueEscapesSpecialChars(): void
+    {
+        $el = new FormElementText('field', 'Field');
+        $el->setValue('<b>bold</b> & "quoted"');
+
+        $this->assertStringContainsString('&lt;b&gt;', $el->htmlValue());
+        $this->assertStringContainsString('&amp;', $el->htmlValue());
+        $this->assertStringContainsString('&quot;', $el->htmlValue());
+    }
+
+    public function testHtmlFormRowContainsTableRow(): void
+    {
+        $el = new FormElementText('field', 'Field');
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('<tr>', $html);
+        $this->assertStringContainsString('</tr>', $html);
+    }
+
+    public function testHtmlFormRowContainsLabel(): void
+    {
+        $el = new FormElementText('myfield', 'My Label');
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('My Label', $html);
+    }
+
+    public function testHtmlFormRowContainsInputName(): void
+    {
+        $el = new FormElementText('myfield', 'My Label');
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('name="data[myfield]"', $html);
+    }
+
+    public function testHtmlFormRowShowsErrorMessageOnError(): void
+    {
+        $el = new FormElementText('field', 'Field');
+        $el->setNotNull();
+        $el->setValue('');
+        $el->validate();
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('Invalid value', $html);
+    }
+
+    public function testSetDbValueFromArrayExtractsNamedKey(): void
+    {
+        $el = new FormElementText('username', 'Username');
+        $el->setDbValue([['username' => 'alice']]);
+
+        $this->assertSame('alice', $el->dbValue());
+    }
 }

@@ -1,0 +1,83 @@
+<?php
+
+use PHPUnit\Framework\TestCase;
+
+class FormElementPasswordTest extends TestCase
+{
+    public function testHtmlFormRowUsesPasswordType(): void
+    {
+        $el = new FormElementPassword('encKey', 'Encryption Key');
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('type="password"', $html);
+    }
+
+    public function testHtmlFormRowHasNoValueAttribute(): void
+    {
+        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el->setValue('secret');
+
+        $html = $el->htmlFormRow();
+
+        // value attribute must be absent (null → omitted by array2attributes)
+        $this->assertDoesNotMatchRegularExpression('/value="[^"]*"/', $html);
+    }
+
+    public function testHtmlFormRowContainsLabel(): void
+    {
+        $el = new FormElementPassword('encKey', 'Encryption Key');
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('Encryption Key', $html);
+    }
+
+    public function testHtmlFormRowContainsNameAttribute(): void
+    {
+        $el = new FormElementPassword('encKey', 'Encryption Key');
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('name="data[encKey]"', $html);
+    }
+
+    public function testHtmlFormRowRenderedInTableRow(): void
+    {
+        $el = new FormElementPassword('encKey', 'Encryption Key');
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('<tr>', $html);
+        $this->assertStringContainsString('</tr>', $html);
+    }
+
+    public function testHintShowsInSpan(): void
+    {
+        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el->setHint('Your pre-shared key');
+
+        $html = $el->htmlFormRow();
+
+        $this->assertStringContainsString('cursor:help', $html);
+        $this->assertStringContainsString('Your pre-shared key', $html);
+    }
+
+    public function testValidatePassesWithValue(): void
+    {
+        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el->setNotNull();
+        $el->setValue('secret');
+
+        $this->assertTrue($el->validate());
+    }
+
+    public function testValidateFailsOnEmptyWithNotNull(): void
+    {
+        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el->setNotNull();
+        $el->setValue('');
+
+        $this->assertFalse($el->validate());
+    }
+}

@@ -17,6 +17,5 @@ services:
       #PHPKNOCK_ERRORS_VERBOSE: "false"
     volumes:
       - ../app:/web/app:ro
-      - ../tmp:/web/tmp
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent

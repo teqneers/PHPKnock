@@ -134,7 +134,7 @@ class FormElementDropdown extends FormElement
     public function isEmpty(): bool
     {
         return (is_array($this->_value) && count($this->_value) === 0) || (!is_array($this->_value) && strlen(
-                    $this->_value
+                    (string)$this->_value
                 ) === 0);
     }
 
