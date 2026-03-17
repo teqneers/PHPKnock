@@ -1,5 +1,6 @@
-PHPKnock
-========
+<p align="center">
+  <img src="app/public/static/images/phpknock.png" alt="PHPKnock" width="200" />
+</p>
 
 **PHPKnock** is a web frontend for the port-knocking client [fwknop](http://cipherdyne.org/fwknop/). It lets you send a Single Packet Authorization (SPA) or port-knocking request to a remote server directly from a browser, without needing fwknop installed locally.
 

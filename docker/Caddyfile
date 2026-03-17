@@ -4,6 +4,6 @@
 }
 
 {$SERVER_NAME:localhost} {
-    root * /app/public
+    root * /web/app/public
     php_server
 }

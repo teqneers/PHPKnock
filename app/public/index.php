@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2012-2024 by TEQneers GmbH & Co. KG
+ * Copyright (C) 2012-2026 by TEQneers GmbH & Co. KG
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@
  * @author         Oliver G. Mueller <mueller@teqneers.de>
  * @package        PHPKnock
  * @subpackage     base
- * @copyright      Copyright (C) 2003-2024 TEQneers GmbH & Co. KG. All rights reserved.
+ * @copyright      Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved.
  */
 
 #############################################################################
@@ -41,21 +41,32 @@ const CLI_CALL = (PHP_SAPI === 'cli');
 
 // basic path settings
 $PATH_FS_APPLICATION = dirname(__DIR__);
-$PATH_APPLICATION    = '/knock';
+$PATH_FS_TMP         = ($v = getenv('PHPKNOCK_PATH_FS_TMP')) !== false ? $v : $PATH_FS_APPLICATION . '/tmp';
+$PATH_APPLICATION    = ($v = getenv('PHPKNOCK_PATH_APPLICATION')) !== false ? $v : '/knock';
+$USE_HTTPS_ONLY      = ($v = getenv('PHPKNOCK_USE_HTTPS_ONLY')) !== false ?
+    filter_var($v, FILTER_VALIDATE_BOOLEAN) : false;
+$ERRORS_VERBOSE      = ($v = getenv('PHPKNOCK_ERRORS_VERBOSE')) !== false ?
+    filter_var($v, FILTER_VALIDATE_BOOLEAN) : false;
+$ERRORS_LOG          = ($v = getenv('PHPKNOCK_ERRORS_LOG')) !== false ? $v : null;
+$ENCRYPTION_KEY      = ($v = getenv('PHPKNOCK_ENCRYPTION_KEY')) !== false ? $v : null;
+$FWKNOP_CLI          = ($v = getenv('PHPKNOCK_FWKNOP_CLI')) !== false ? $v : '/usr/bin/fwknop';
+$SERVER_PORT         = ($v = getenv('PHPKNOCK_SERVER_PORT')) !== false ? (int)$v : 62201;
+$ACCESS_PORT_LIST    = ($v = getenv('PHPKNOCK_ACCESS_PORT_LIST')) !== false ? $v : 'tcp/22';
+$DESTINATION         = null;
+if (($v = getenv('PHPKNOCK_DESTINATION')) !== false) {
+    try {
+        $DESTINATION = json_decode($v, true, flags: JSON_THROW_ON_ERROR);
+    } catch (JsonException) {
+        $DESTINATION = $v;
+    }
+}
 
-$USE_HTTPS_ONLY = true;
+// local_config.php is optional — overrides any value set above
+$pathLocalConfig = __DIR__ . '/../local_config.php';
+if (file_exists($pathLocalConfig)) {
+    require $pathLocalConfig;
+}
 
-$ERRORS_VERBOSE = false;
-
-$ENCRYPTION_KEY   = null;
-$FWKNOP_CLI       = '/usr/bin/fwknop';
-$SERVER_PORT      = 62201;
-$ACCESS_PORT_LIST = 'tcp/22';
-$DESTINATION      = null;
-
-
-// override configuration values
-require __DIR__ . '/../local_config.php';
 require __DIR__ . '/../functions.php';
 
 #############################################################################
@@ -84,10 +95,10 @@ if ($USE_HTTPS_ONLY && (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on')
 // convert variables into constans in order to have them globally
 // available and to increase security
 const PRODUCT_NAME    = 'PHPKnock';
-const PRODUCT_VERSION = '0.2';
+const PRODUCT_VERSION = '0.3';
 
 define('PATH_FS_APPLICATION', $PATH_FS_APPLICATION);
-define('PATH_FS_TMP', $PATH_FS_APPLICATION . '/tmp');
+define('PATH_FS_TMP', $PATH_FS_TMP);
 define('PATH_APPLICATION', $PATH_APPLICATION);
 const PATH_FS_PASSWORD = PATH_FS_TMP . '/.fwknop.pass';
 
@@ -207,13 +218,6 @@ $form->fetch();
 #############################################################################
 ###	CHECKS
 #############################################################################
-if (!is_readable('../local_config.php')) {
-    $message->addError(
-        'File "local_config.php" does not exists or is not readable. Please copy from "local_config_template.php" and configure it.'
-    );
-    $error = true;
-}
-
 if (!is_writable(PATH_FS_TMP)) {
     $message->addError('Temporary directory "' . PATH_FS_TMP . '" is not writable.');
     $error = true;
@@ -354,7 +358,7 @@ echo '
 	<div id="header">
 		<table border="0" cellspacing="0" width="100%" class="menu">
 		<tr>
-			<td class="left">&nbsp;</td>
+			<td class="left"><img src="static/images/phpknock-image.png" alt="PHPKnock" height="40" /></td>
 			<td class="middle">' . PRODUCT_NAME . '</td>
 			<td class="right">&nbsp;</td>
 		</tr>
