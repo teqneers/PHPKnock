@@ -197,16 +197,16 @@ class Message
             $messageTypes = self::ALL;
         }
 
-        if ($messageTypes && self::ERROR) {
+        if ($messageTypes & self::ERROR) {
             $items['error'] = $this->errors($cleanup);
         }
-        if ($messageTypes && self::WARNING) {
+        if ($messageTypes & self::WARNING) {
             $items['warning'] = $this->warnings($cleanup);
         }
-        if ($messageTypes && self::NOTICE) {
+        if ($messageTypes & self::NOTICE) {
             $items['notice'] = $this->notices($cleanup);
         }
-        if ($messageTypes && self::MESSAGE) {
+        if ($messageTypes & self::MESSAGE) {
             $items['message'] = $this->messages($cleanup);
         }
         return $items;

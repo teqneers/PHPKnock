@@ -348,7 +348,7 @@ class Html
     public function header(): string
     {
 
-        $language = (!empty($this->_language)) ? ' xml:lang="en" lang="en"' : null;
+        $language = (!empty($this->_language)) ? ' lang="' . htmlspecialchars($this->_language, ENT_QUOTES, CHARSET) . '"' : '';
         $header   = '';
 
         if (!headers_sent()) {
@@ -356,12 +356,10 @@ class Html
         }
 
         // echo '<?xml version="1.0"? >';
-        $header .= '<!DOCTYPE html
-     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">';
+        $header .= '<!DOCTYPE html>';
 
         $header .= '
-<html xmlns="http://www.w3.org/1999/xhtml"' . $language . '>
+<html' . $language . '>
 <head>';
 
         $metaList = $this->_metaList;
@@ -381,14 +379,8 @@ class Html
         if (count($this->_styleSheetList) > 0) {
             foreach ($this->_styleSheetList as $style) {
                 $type = ($style['alternative']) ? 'alternative stylesheet' : 'stylesheet';
-                if ($style['conditional'] == null) {
                     $header .= '
 	<link rel="' . $type . '" type="text/css" href="' . $style['css'] . '" title="' . $style['title'] . '" media="' . $style['media'] . '" />';
-                } else {
-                    $header .= '
-	<!--[if ' . $style['conditional'] . ']><link rel="' . $type . '" type="text/css" href="' . $style['css'] . '" title="' . $style['title']
-                        . '" media="' . $style['media'] . '" /><![endif]-->';
-                }
             } // foreach
         } // if
 
@@ -470,7 +462,7 @@ class Html
         foreach ($attributes as $key => $value) {
             if ($value !== null) {
                 if (!is_array($value)) {
-                    $ret[] = $key . '="' . $value . '"';
+                    $ret[] = $key . '="' . htmlspecialchars((string)$value, ENT_QUOTES, CHARSET) . '"';
                 } elseif (count($value) > 0) {
                     // recursive call, in case an attribute is an array
                     $ret[] = self::array2attributes($value);

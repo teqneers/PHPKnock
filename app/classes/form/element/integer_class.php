@@ -47,13 +47,13 @@ class FormElementInteger extends FormElement
     /**
      * Defines the minimum valid value
      */
-    protected ?int $_minValue;
+    protected ?int $_minValue = null;
 
 
     /**
      * Defines the maximum valid value
      */
-    protected ?int $_maxValue;
+    protected ?int $_maxValue = null;
 
 
     #######################################################################

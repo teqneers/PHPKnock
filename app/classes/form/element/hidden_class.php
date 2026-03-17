@@ -66,11 +66,11 @@ class FormElementHidden extends FormElement
         }
 
         // define HTML attributes for input field
-        $attr = array(
-            'type' => 'hidden',
-            'name' => 'data[' . $this->name() . ']',
-            'value' => $this->htmlValue()
-        );
+        $attr = [
+            'type'  => 'hidden',
+            'name'  => 'data[' . $this->name() . ']',
+            'value' => $this->htmlValue(),
+        ];
 
         return '
         <input ' . Html::array2attributes($attr) . ' />';

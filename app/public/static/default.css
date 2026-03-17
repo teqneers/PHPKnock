@@ -63,10 +63,8 @@ div#content {
     margin: 20px 10%;
 }
 
-/* no positioning for IE5/Win - the whole page scrolls */
 div#footerwrap {
     width: 100%;
-    p\osition: absolute;
     bottom: 0;
     left: 0;
     height: 50px;

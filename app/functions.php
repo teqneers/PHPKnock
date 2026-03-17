@@ -156,7 +156,9 @@ function pr(mixed $dump, ?string $name = null): void
         if (!CLI_CALL) {
 
             echo '
-			<div id="jsDebug' . $uniqueId . '\').style.display=\'none\';" class="debugClose">X</div>
+			<div id="jsDebug' . $uniqueId . '" class="debug">
+				<div class="debugTitle">
+					<div onClick="document.getElementById(\'jsDebug' . $uniqueId . '\').style.display=\'none\';" class="debugClose">X</div>
 					' . $name . '
 				</div>
 				<pre>' . "\n";

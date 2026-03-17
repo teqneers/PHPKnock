@@ -1,0 +1,122 @@
+<?php
+/**
+ * Copy this file to local_config.php and adjust the values below.
+ */
+
+error_reporting(E_ALL);
+
+
+#############################################################################
+# SETUP
+#############################################################################
+/**
+ * The absolute URL path used in a browser to reach your PHPKnock installation.
+ *
+ * For security reasons, do not put the entire PHPKnock directory into your
+ * web server document root. Instead, place it elsewhere and point your web
+ * server at the app/public/ subdirectory.
+ *
+ * Example Apache alias:
+ * "Alias /phpknock /opt/phpknock/app/public"
+ * See: http://httpd.apache.org/docs/2.2/mod/mod_alias.html#alias
+ *
+ * Default: '/phpknock'
+ */
+$PATH_APPLICATION = '/phpknock';
+
+
+/**
+ * Restrict all web requests to HTTPS.
+ *
+ * When true, PHPKnock redirects any HTTP request to HTTPS.
+ * When false, both HTTP and HTTPS are accepted.
+ *
+ * Note: when running behind a reverse proxy or FrankenPHP/Caddy that
+ * terminates TLS, you can leave this set to true.
+ *
+ * Default: true
+ */
+$USE_HTTPS_ONLY = true;
+
+
+/**
+ * Absolute path to the fwknop command-line binary.
+ *
+ * Run "which fwknop" to find the path on your system.
+ *
+ * Default: '/usr/bin/fwknop'
+ */
+$FWKNOP_CLI = '/usr/bin/fwknop';
+
+
+/**
+ * Encryption key used for SPA packets.
+ *
+ * Set to null to prompt the user to enter the key in the browser.
+ * Set to a string to use a fixed key (the field will not be shown).
+ *
+ * Default: null
+ */
+$ENCRYPTION_KEY = null;
+
+
+/**
+ * Destination server(s) to knock.
+ *
+ * null        — user types a free-form IP address or hostname.
+ * string      — a single fixed destination, e.g. '10.0.0.1' (field hidden from user).
+ * array       — a dropdown list of named servers, e.g.:
+ *               ['10.0.0.1' => 'prod server', 'dev.example.com' => 'dev env']
+ *
+ * Default: null
+ */
+$DESTINATION = null;
+
+
+/**
+ * Ports and protocols to request access to on the remote server.
+ *
+ * Format: '<proto>/<port>[,<proto>/<port>,...]', e.g. 'tcp/22' or 'tcp/22,udp/53'.
+ *
+ * Set to null to let the user enter the port list in the browser.
+ *
+ * Note: this argument is not required when using fwknop's --server-cmd
+ * option to send a command via the SPA packet instead.
+ *
+ * Default: 'tcp/22'
+ */
+$ACCESS_PORT_LIST = 'tcp/22';
+
+
+/**
+ * UDP port on which fwknopd listens for SPA packets.
+ *
+ * Set to null to let the user enter the port in the browser.
+ *
+ * Default: 62201
+ */
+$SERVER_PORT = 62201;
+
+
+#############################################################################
+# DEBUGGING AND ERROR CONFIGURATION
+#############################################################################
+/**
+ * Path to the error log file.
+ *
+ * The file must be writable by the web server user. It will not be created
+ * automatically — create it yourself before enabling logging.
+ *
+ * Default: error.log in the app/ directory
+ */
+$ERRORS_LOG = __DIR__ . '/error.log';
+
+
+/**
+ * Show detailed fwknop output and the executed command in the browser.
+ *
+ * Never enable this in production.
+ *
+ * Default: false
+ */
+$ERRORS_VERBOSE = false;

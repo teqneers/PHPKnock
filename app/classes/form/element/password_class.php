@@ -42,11 +42,6 @@ class FormElementPassword extends FormElement
 {
 
     #######################################################################
-    # attributes
-    #######################################################################
-    protected string $_validRegExp = '';
-
-    #######################################################################
     # methods
     #######################################################################
     /**
@@ -114,47 +109,6 @@ class FormElementPassword extends FormElement
     }
 
 
-
-
-    #######################################################################
-    # accessor methods
-    #######################################################################
-    /**
-     * Accessor
-     *
-     * @return string        Valid PCRE compatible regular expression
-     * @see    validate()
-     * @see    setValidRegExp()
-     */
-    public function validRegExp(): string
-    {
-        return $this->_validRegExp;
-    }
-
-
-    /**
-     * Accessor
-     *
-     * If this value is set to anything not empty, the value will be validated
-     * against this regular expression (PCRE compatible, not POSIX!).
-     * This value might produce an {@link setError()} if the regular expression
-     * is not found in {@link value()}.
-     *
-     * Example:
-     * An element which will only except numbers as a valid input:
-     * <code>
-     *   $element->setValidRegExp( '/^[0-9]+$/' );
-     * </code>
-     *
-     * @param  string  $regExp  Valid regular expression (PCRE)
-     * @see    validRegExp()
-     */
-    public function setValidRegExp(string $regExp): self
-    {
-        $this->_validRegExp = $regExp;
-
-        return $this;
-    }
 
 
 }

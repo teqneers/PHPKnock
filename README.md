@@ -1,62 +1,81 @@
 PHPKnock
 ========
 
-***PHPKnock*** is a web frontend for the port knocking service [fwknop](http://cipherdyne.org/fwknop/) . It let you shoot a Single Packet Authorization (SPA) or a port knocking request to any server you configured and ask this server to open a certain port for you or any given IP address.
+**PHPKnock** is a web frontend for the port-knocking client [fwknop](http://cipherdyne.org/fwknop/). It lets you send a Single Packet Authorization (SPA) or port-knocking request to a remote server directly from a browser, without needing fwknop installed locally.
 
-What is this web frontend good for? You can use it to support any OS or platform that has a browser. E.g., you can install it on an intranet server to open up other servers in your extranet or internet. Another use-case could be to install it in your extranet, so your support staff has the ability to send SPA or port knocking requests from home or somewhere else without installing fwknop to their computer.
+**Why a web frontend?** It lets you trigger port-knocking from any device with a browser. Typical use cases:
 
-If you like to know more about [port knocking](http://en.wikipedia.org/wiki/Port_knocking) or [Single Packet Authorization](http://en.wikipedia.org/wiki/Single_Packet_Authorization) checkout Wikipedia.
+- Install it on an intranet server so staff can open ports on other servers in your network.
+- Install it in your extranet so support staff can send SPA requests from home without installing fwknop on their own machines.
+
+For background reading, see Wikipedia on [port knocking](http://en.wikipedia.org/wiki/Port_knocking) and [Single Packet Authorization](http://en.wikipedia.org/wiki/Single_Packet_Authorization).
 
 
 Requirements
 ------------
 
-- Web server like Apache, Nginx, IIS, or alike
-- PHP > 8.1.x running as SAPI, FastCGI, or CGI
+- PHP >= 8.1
 - fwknop client 2.x
+- A web server (Apache, Nginx, etc.) **or** Docker
 
 
 Installation
 ------------
-Download or clone **PHPKnock** to your web server. You can put **PHPKnock** into your document root, but for security reasons, it is NOT a good idea to put your whole Knock directory into your document root of your web server. Instead, you should put it somewhere else and use an alias to **PHPKnock**'s htdocs folder.
 
-Example for your Apache configuration:
-<pre>"Alias /phpknock /opt/phpknock/htdocs"</pre>
+### Option A — Docker (recommended)
+
+1. Copy and configure the config file:
+   ```bash
+   cp app/local_config.php.dist app/local_config.php
+   vi app/local_config.php
+   ```
+
+2. Start the container from the `docker/` directory:
+   ```bash
+   docker compose up -d
+   ```
+
+   fwknop is installed automatically inside the container. The `tmp/` directory is bind-mounted from the project root.
 
 
-For more information, visit [Apache's mod_alias](http://httpd.apache.org/docs/2.2/mod/mod_alias.html#alias).
+### Option B — Traditional web server
 
-Copy template configuration file and change configuration as needed:
+1. Clone or download PHPKnock somewhere outside your document root, for example `/opt/phpknock`.
 
-<pre>
-# cp phpknock/local_config.php.dist phpknock/local_config.php
-# vi phpknock/local_config.php
-</pre>
+2. Point your web server at the `app/public/` subdirectory. Example Apache alias:
+   ```apacheconf
+   Alias /phpknock /opt/phpknock/app/public
+   ```
+   See [Apache mod_alias](http://httpd.apache.org/docs/2.2/mod/mod_alias.html#alias) for details.
 
-Make temporary directory writable for web server user:
+3. Copy and configure the config file:
+   ```bash
+   cp app/local_config.php.dist app/local_config.php
+   vi app/local_config.php
+   ```
 
-<pre>
-# chown www-data:www-data phpknock/tmp
-# chmod 770 phpknock/tmp
-</pre>
+4. Make the `tmp/` directory writable by the web server user:
+   ```bash
+   chown www-data:www-data tmp
+   chmod 770 tmp
+   ```
 
-Now you should be able to use **PHPKnock** through your web browser. Enter something like <pre>https://your-domain.com/path-to/phpknock/</pre>
+5. Open `https://your-domain.com/phpknock/` in a browser.
 
 
 Contribute
 ----------
 
-Please feel free to use the Git issue tracking to report back any problems or errors. You're encouraged to clone the repository and send pull requests if you'd like to contribute actively in developing the library.
+Bug reports and pull requests are welcome via the [GitHub issue tracker](https://github.com/teqneers/phpknock/issues).
 
 
 License
 -------
 
-Copyright (C) 2012-2024 by TEQneers GmbH & Co. KG
+Copyright (C) 2012-2026 by TEQneers GmbH & Co. KG
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal with the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-

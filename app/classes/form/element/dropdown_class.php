@@ -75,7 +75,7 @@ class FormElementDropdown extends FormElement
      *
      * @see        setSize()
      */
-    protected ?int $_maximumSize;
+    protected ?int $_maximumSize = null;
 
 
     #######################################################################
@@ -252,7 +252,7 @@ class FormElementDropdown extends FormElement
         }
 
         // if notNull is set and no value is set, an error will occur
-        if ($this->notNull() && ($this->value() === null || count($this->value()) === 0)) {
+        if ($this->notNull() && $this->isEmpty()) {
             $this->setError('EMPTY VALUE');
         }
 
@@ -320,14 +320,14 @@ class FormElementDropdown extends FormElement
             $attr['name']     .= '[]';
         }
 
-        $output = '<select ' . Html::array2attributes($attr) . ' />';
+        $output = '<select ' . Html::array2attributes($attr) . '>';
 
         if (is_array($this->options())) {
             foreach ($this->options() as $key => $option) {
                 // SELECTED must be compared as STRICT because sometimes the values are '0'.
                 $tmp        = count((array)$value) && in_array((string)$key, (array)$value, true) ? 'selected' : null;
                 $optionAttr = [
-                    'value'    => htmlspecialchars($key, ENT_QUOTES, 'UTF-8'),
+                    'value'    => $key,
                     'selected' => $tmp,
                 ];
 
@@ -335,7 +335,7 @@ class FormElementDropdown extends FormElement
 						<option ' . Html::array2attributes($optionAttr) . '>' . htmlspecialchars(
                         $option,
                         ENT_QUOTES,
-                        'UTF-8'
+                        CHARSET
                     ) . '</option>';
 
             }

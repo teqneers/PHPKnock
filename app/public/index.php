@@ -55,7 +55,7 @@ $DESTINATION      = null;
 
 
 // override configuration values
-include __DIR__ . '/../local_config.php';
+require __DIR__ . '/../local_config.php';
 require __DIR__ . '/../functions.php';
 
 #############################################################################
@@ -291,6 +291,7 @@ if (!$error && $form->element('doKnock')->value() === '1' && $form->validate()) 
 
     foreach ($hosts as $target) {
         file_put_contents(PATH_FS_PASSWORD, $target . ':' . $encryptionKey);
+        chmod(PATH_FS_PASSWORD, 0600);
 
         $execute['D'] = '-D ' . escapeshellarg(escapeshellcmd($target));
 

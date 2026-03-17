@@ -109,14 +109,10 @@ class Form
         // class name of the new object
         $className = 'FormElement' . $elementType;
         if (!class_exists($className)) {
-            trigger_error(get_class($this) . ': Element of type "' . $className . '" does not exists.', E_USER_ERROR);
+            throw new \InvalidArgumentException(get_class($this) . ': Element of type "' . $className . '" does not exist.');
         }
 
-        // make a reflection object
-        $reflectionObj = new ReflectionClass($className);
-
-        // use Reflection to create a new instance, using the $args
-        $obj = $reflectionObj->newInstanceArgs($args);
+        $obj = new $className(...$args);
 
         $this->_elementList[$obj->name()] = $obj;
         return $obj;

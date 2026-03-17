@@ -74,7 +74,7 @@ class FormElement
      *
      * @var        string
      */
-    protected $_value;
+    protected mixed $_value = null;
 
 
     /**
@@ -88,7 +88,7 @@ class FormElement
      *
      * @var        string
      */
-    protected $_default;
+    protected mixed $_default = null;
 
 
     /**
