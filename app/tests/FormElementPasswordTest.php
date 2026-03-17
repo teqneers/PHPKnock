@@ -1,12 +1,13 @@
 <?php
 
+use PHPKnock\Form\Element\Password as ElementPassword;
 use PHPUnit\Framework\TestCase;
 
 class FormElementPasswordTest extends TestCase
 {
     public function testHtmlFormRowUsesPasswordType(): void
     {
-        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el = new ElementPassword('encKey', 'Encryption Key');
 
         $html = $el->htmlFormRow();
 
@@ -15,7 +16,7 @@ class FormElementPasswordTest extends TestCase
 
     public function testHtmlFormRowHasNoValueAttribute(): void
     {
-        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el = new ElementPassword('encKey', 'Encryption Key');
         $el->setValue('secret');
 
         $html = $el->htmlFormRow();
@@ -26,7 +27,7 @@ class FormElementPasswordTest extends TestCase
 
     public function testHtmlFormRowContainsLabel(): void
     {
-        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el = new ElementPassword('encKey', 'Encryption Key');
 
         $html = $el->htmlFormRow();
 
@@ -35,7 +36,7 @@ class FormElementPasswordTest extends TestCase
 
     public function testHtmlFormRowContainsNameAttribute(): void
     {
-        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el = new ElementPassword('encKey', 'Encryption Key');
 
         $html = $el->htmlFormRow();
 
@@ -44,7 +45,7 @@ class FormElementPasswordTest extends TestCase
 
     public function testHtmlFormRowRenderedInTableRow(): void
     {
-        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el = new ElementPassword('encKey', 'Encryption Key');
 
         $html = $el->htmlFormRow();
 
@@ -54,7 +55,7 @@ class FormElementPasswordTest extends TestCase
 
     public function testHintShowsInSpan(): void
     {
-        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el = new ElementPassword('encKey', 'Encryption Key');
         $el->setHint('Your pre-shared key');
 
         $html = $el->htmlFormRow();
@@ -65,7 +66,7 @@ class FormElementPasswordTest extends TestCase
 
     public function testValidatePassesWithValue(): void
     {
-        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el = new ElementPassword('encKey', 'Encryption Key');
         $el->setNotNull();
         $el->setValue('secret');
 
@@ -74,7 +75,7 @@ class FormElementPasswordTest extends TestCase
 
     public function testValidateFailsOnEmptyWithNotNull(): void
     {
-        $el = new FormElementPassword('encKey', 'Encryption Key');
+        $el = new ElementPassword('encKey', 'Encryption Key');
         $el->setNotNull();
         $el->setValue('');
 

@@ -1,5 +1,6 @@
 <?php
 
+use PHPKnock\Form\Element\Dropdown as ElementDropdown;
 use PHPUnit\Framework\TestCase;
 
 class FormElementDropdownTest extends TestCase
@@ -12,7 +13,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testSingleValueSelection(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setValue('de');
 
         $this->assertSame('de', $el->value());
@@ -20,7 +21,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testMultipleValueSelection(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setIsMultiple();
         $el->setValue(['us', 'de']);
 
@@ -29,7 +30,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testNotNullFailsOnEmpty(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setNotNull();
         $el->setValue([]);
 
@@ -38,7 +39,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testNotNullPassesWithValue(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setNotNull();
         $el->setValue('us');
 
@@ -47,7 +48,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testHtmlFormRowNoSelfClosingSelect(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setValue('de');
 
         $html = $el->htmlFormRow();
@@ -60,7 +61,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testHtmlFormRowContainsOptions(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setValue('de');
 
         $html = $el->htmlFormRow();
@@ -72,7 +73,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testHtmlFormRowMarksSelectedOption(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setValue('de');
 
         $html = $el->htmlFormRow();
@@ -82,7 +83,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testOptionsSpecialCharsEscaped(): void
     {
-        $el = new FormElementDropdown('test', 'Test', ['<key>' => 'Val & "ue"']);
+        $el = new ElementDropdown('test', 'Test', ['<key>' => 'Val & "ue"']);
         $el->setValue('');
 
         $html = $el->htmlFormRow();
@@ -93,7 +94,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testIsEmptyTrueWhenNoValue(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setValue([]);
 
         $this->assertTrue($el->isEmpty());
@@ -101,7 +102,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testIsEmptyFalseWhenHasValue(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setValue('us');
 
         $this->assertFalse($el->isEmpty());
@@ -109,7 +110,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testSetDbValueFlatArray(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setDbValue(['us', 'de']);
 
         $this->assertSame(['us', 'de'], $el->value());
@@ -117,7 +118,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testSetDbValueMatrixExtractsColumn(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setDbValue([
             ['country' => 'us'],
             ['country' => 'de'],
@@ -128,7 +129,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testValidateRemovesEmptyStringFromArray(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setValue(['us', '', 'de']);
 
         $el->validate();
@@ -139,7 +140,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testValidateConvertsEmptyStringValueToNull(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setValue('');
 
         $el->validate();
@@ -149,7 +150,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testSetIsMultipleAutoSetsMaximumSize(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setIsMultiple(true);
 
         $this->assertNotNull($el->maximumSize());
@@ -158,7 +159,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testSetSizeOneDisablesMultiple(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setIsMultiple(true);
         $el->setSize(1);
 
@@ -167,7 +168,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testHtmlFormRowMultipleSelectHasArrayName(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setIsMultiple(true);
 
         $html = $el->htmlFormRow();
@@ -177,7 +178,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testDynamicSizeCappedAtMaximumSize(): void
     {
-        $el = new FormElementDropdown('country', 'Country', $this->options);
+        $el = new ElementDropdown('country', 'Country', $this->options);
         $el->setMaximumSize(2); // 3 options, capped at 2
 
         $html = $el->htmlFormRow();
@@ -187,7 +188,7 @@ class FormElementDropdownTest extends TestCase
 
     public function testZeroValueOptionNotMistakenlSelected(): void
     {
-        $el = new FormElementDropdown('num', 'Number', ['0' => 'Zero', '1' => 'One']);
+        $el = new ElementDropdown('num', 'Number', ['0' => 'Zero', '1' => 'One']);
         $el->setValue('1');
 
         $html = $el->htmlFormRow();

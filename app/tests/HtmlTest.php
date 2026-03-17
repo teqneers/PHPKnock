@@ -1,5 +1,6 @@
 <?php
 
+use PHPKnock\Html;
 use PHPUnit\Framework\TestCase;
 
 class HtmlTest extends TestCase

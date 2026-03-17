@@ -8,6 +8,11 @@
     "require-dev": {
         "phpunit/phpunit": "^10.0"
     },
+    "autoload": {
+        "psr-4": {
+            "PHPKnock\\": "src/"
+        }
+    },
     "autoload-dev": {
         "classmap": ["tests/"]
     }

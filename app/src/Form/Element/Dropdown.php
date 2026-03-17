@@ -21,24 +21,17 @@
  * THE SOFTWARE.
  */
 
-/**
- * Form Element Dropdown Class
- *
- * @author         Oliver G. Mueller <mueller@teqneers.de>
- * @package        PHPKnock
- * @subpackage     Classes
- * @copyright      Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved
- */
+namespace PHPKnock\Form\Element;
+
+use PHPKnock\Form\Element;
+use PHPKnock\Html;
 
 /**
  * Form Element Dropdown Class
  *
  * This class represents a single html form element for dropdown.
- *
- * @package        PHPKnock
- * @subpackage     Classes
  */
-class FormElementDropdown extends FormElement
+class Dropdown extends Element
 {
 
     #######################################################################
@@ -46,9 +39,6 @@ class FormElementDropdown extends FormElement
     #######################################################################
     /**
      * This array contains selectable options
-     *
-     * The key defines the DB value.
-     * The value will be shown to the user.
      */
     protected array $_options = [];
 
@@ -61,19 +51,12 @@ class FormElementDropdown extends FormElement
 
     /**
      * Defines the display size of a dropdown
-     *
-     * This value has to greater 0 and should be
-     * greater 1 if {@link isMultiple()} is set.
-     *
-     * @see        setMaximumSize()
      */
     protected int $_size = 1;
 
 
     /**
      * Defines the maximum displayed size of a dynamic growing dropdown
-     *
-     * @see        setSize()
      */
     protected ?int $_maximumSize = null;
 
@@ -98,38 +81,31 @@ class FormElementDropdown extends FormElement
     /**
      * Sets value from a DB compatible format
      *
-     * @param  mixed  $newValue     DB compatible value
-     * @return FormElementDropdown  Return $this for fluent interface (method chaining)
+     * @param  mixed  $newValue  DB compatible value
+     * @return Dropdown          Return $this for fluent interface (method chaining)
      * @see    dbValue()
-     * @see    _fetchGlobal()
      */
     public function setDbValue($newValue): self
     {
         if (!is_array($newValue)) {
-            // DB delivered the value. Keep it like it is.
             $this->_value = $newValue;
         } elseif (is_array(reset($newValue))) {
             $this->_value = [];
-            // assume that this data has been delivered with related data
-            // just pick the dbColumnName
             if (isset($newValue[0][$this->name()])) {
-                // ensure to get all rows from the given matrix data
                 foreach ($newValue as $row) {
                     $this->_value[] = $row[$this->name()];
                 }
             }
         } else {
             $this->_value = array_values($newValue);
-        } // if
+        }
 
         return $this;
-    } // function
+    }
 
 
     /**
      * Returns true if element's value is empty
-     *
-     * An empty value will usually not display in text mode.
      */
     public function isEmpty(): bool
     {
@@ -140,27 +116,17 @@ class FormElementDropdown extends FormElement
 
 
     /**
-     * Accessor
-     *
      * Will define element value.
-     * It is important to know, that this value might
-     * appear in different forms and should be set using the {@link fetch()} method.
-     * Different values depend on the data source (either DB or http request).
-     * The value should not be read directly from this method to write
-     * it into a DB.
-     * Use method {@link dbValue()} instead.
      *
-     * @param  mixed  $newValue     Input compatible value
-     * @return FormElementDropdown  Return $this for fluent interface (method chaining)
+     * @param  mixed  $newValue  Input compatible value
+     * @return Dropdown          Return $this for fluent interface (method chaining)
      * @see    fetch()
-     * @see    _fetchRequest()
      * @see    value()
      * @see    dbValue()
      */
     public function setValue($newValue): self
     {
         if (!is_array($newValue) || !is_array(reset($newValue))) {
-            // DB delivered value. Keep it like it is.
             $this->_value = $newValue;
         } elseif (isset($newValue[0][$this->name()])) {
             $this->_value = $newValue[0][$this->name()];
@@ -169,31 +135,25 @@ class FormElementDropdown extends FormElement
         }
 
         // ensure that all preselected values are of type STRING.
-        // this is important to mark the correct ones
-        // in showForm-function.
         if ($this->_value !== null) {
 
             if (!is_array($this->_value)) {
                 $this->_value = (string)$this->_value;
             } else {
-                // make sure that all values are strings
                 $this->_value = array_map('strval', $this->_value);
-            } // if
+            }
 
-        } // if
+        }
 
         return $this;
-    } // function
+    }
 
 
     /**
-     * Accessor
-     *
      * Returns the current available options to choose from.
      *
      * @param  mixed  $value   Optional option value
-     * @return array|mixed     Complete option array or in case a value was given
-     *                         related value name or NULL if option does not exist
+     * @return array|mixed     Complete option array or related value name
      * @see    setOptions()
      */
     public function options($value = null)
@@ -202,7 +162,6 @@ class FormElementDropdown extends FormElement
             return $this->_options;
         }
 
-        // only add existing keys to output
         return $this->_options[$value] ?? null;
     }
 
@@ -211,7 +170,7 @@ class FormElementDropdown extends FormElement
      * Define the current available options to choose from.
      *
      * @param  array  $newValue  Key will be returned, value will be shown to the user
-     * @return FormElementDropdown            Return $this for fluent interface (method chaining)
+     * @return Dropdown          Return $this for fluent interface (method chaining)
      * @see    options()
      */
     public function setOptions(array $newValue): self
@@ -219,21 +178,17 @@ class FormElementDropdown extends FormElement
         $this->_options = $newValue;
 
         return $this;
-    } // function
+    }
 
 
     #######################################################################
     # data methods
     #######################################################################
     /**
-     * This function will validate the element's value against defined validation rules (e.g., not null, ...)
-     *
-     * The validation will also activate the error flag if any
-     * rule is broken, which will trigger the error message in
-     * form mode output.
+     * This function will validate the element's value against defined validation rules
      *
      * @return boolean        TRUE if no errors occurred
-     * @see    FormElement::validate()
+     * @see    Element::validate()
      * @see    setNotNull()
      */
     public function validate(): bool
@@ -242,16 +197,14 @@ class FormElementDropdown extends FormElement
 
         // remove empty value which might have been set by setValueWhenEmpty
         if (is_array($this->_value)) {
-            // find empty value in the array
             $key = array_search('', $this->_value, true);
             if ($key !== false) {
                 unset($this->_value[$key]);
-            } // if
+            }
         } elseif ($this->_value === '') {
             $this->_value = null;
         }
 
-        // if notNull is set and no value is set, an error will occur
         if ($this->notNull() && $this->isEmpty()) {
             $this->setError('EMPTY VALUE');
         }
@@ -272,14 +225,12 @@ class FormElementDropdown extends FormElement
     public function htmlFormRow(): string
     {
         $attr = [];
-        //		$attr['class']	= $this->formClass();
 
         $labelAttr = Html::array2attributes($attr);
 
         $label = '<label ' . Html::array2attributes($attr) . '>';
 
         if ($this->hint() !== '') {
-            // show help cursor when a hint is given and the mouse hovers above the label
             $label .= '<span style="cursor:help;" title="' . htmlentities(
                     $this->hint(),
                     ENT_QUOTES,
@@ -295,8 +246,7 @@ class FormElementDropdown extends FormElement
             $this->setDbValue($this->defaultValue());
         }
 
-        // Evaluate dynamic size. Define its maximum by comparing the number of
-        // option values and the maximum given size.
+        // Evaluate dynamic size.
         if ($this->_maximumSize !== null) {
             $size = min($this->_maximumSize, count($this->options()));
         } else {
@@ -309,7 +259,6 @@ class FormElementDropdown extends FormElement
         // define HTML attributes for select tag
         $attr = [
             'name'       => 'data[' . $this->name() . ']',
-//			'class'		=> $this->formClass(),
             'size'       => $size,
             'multiple'   => null,
             'onkeypress' => 'if( event.keyCode==13 || event.which==13) this.form.submit();',
@@ -324,7 +273,6 @@ class FormElementDropdown extends FormElement
 
         if (is_array($this->options())) {
             foreach ($this->options() as $key => $option) {
-                // SELECTED must be compared as STRICT because sometimes the values are '0'.
                 $tmp        = count((array)$value) && in_array((string)$key, (array)$value, true) ? 'selected' : null;
                 $optionAttr = [
                     'value'    => $key,
@@ -369,8 +317,6 @@ class FormElementDropdown extends FormElement
     {
         $this->_isMultiple = $newValue;
 
-        // if the dropdown is set to multiple and size has not been set
-        // yet, the dynamic maximum size will be set to a default of 5.
         if ($newValue && $this->_size === 1) {
             $this->setMaximumSize(5);
         }
@@ -390,11 +336,8 @@ class FormElementDropdown extends FormElement
     /**
      * Defines number of dropdown rows.
      *
-     * IMPORTANT: Any given dynamic {@link maximumSize()} is going to be
-     * reset. A size < 2 will deactivate multiple selection.
-     *
      * @param  integer  $newValue  Size of dropdown
-     * @return FormElementDropdown Return $this for fluent interface (method chaining)
+     * @return Dropdown            Return $this for fluent interface (method chaining)
      * @see    size()
      * @see    setMaximumSize()
      */
@@ -425,16 +368,8 @@ class FormElementDropdown extends FormElement
     /**
      * Defines number of maximum dropdown rows.
      *
-     * The dropdown will grow with each option until the maximum size is
-     * reached. E.g., this value is set to 10, but there are only
-     * 4 options to select from, then the dropdown's size is going
-     * to be 4. If more than 10 options are given, the size is
-     * going to be 10.
-     *
-     * IMPORTANT: A value below 2 will deactivate this feature.
-     *
      * @param  integer  $newValue  Maximum size of dropdown
-     * @return FormElementDropdown Return $this for fluent interface (method chaining)
+     * @return Dropdown            Return $this for fluent interface (method chaining)
      * @see    maximumSize()
      * @see    setSize()
      */
@@ -442,10 +377,8 @@ class FormElementDropdown extends FormElement
     {
         if ($newValue > 1) {
             $this->_maximumSize = $newValue;
-            // set size to the same value (seems to be a good idea)
             $this->_size = $newValue;
         } else {
-            // deactivate feature if value is below 2
             $this->_maximumSize = null;
         }
 

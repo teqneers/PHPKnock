@@ -1,12 +1,13 @@
 <?php
 
+use PHPKnock\Form\Element\Integer as ElementInteger;
 use PHPUnit\Framework\TestCase;
 
 class FormElementIntegerTest extends TestCase
 {
     public function testValidIntegerPasses(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setValue('8080');
 
         $this->assertTrue($el->validate());
@@ -14,7 +15,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testNonIntegerFails(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setValue('abc');
 
         $this->assertFalse($el->validate());
@@ -22,7 +23,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testMinimumBoundaryExactlyPasses(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setMinimum(1);
         $el->setValue('1');
 
@@ -31,7 +32,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testBelowMinimumFails(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setMinimum(1);
         $el->setValue('0');
 
@@ -40,7 +41,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testMaximumBoundaryExactlyPasses(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setMaximum(65535);
         $el->setValue('65535');
 
@@ -49,7 +50,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testAboveMaximumFails(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setMaximum(65535);
         $el->setValue('65536');
 
@@ -58,7 +59,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testWithinRangePasses(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setMinimum(1)->setMaximum(65535);
         $el->setValue('443');
 
@@ -67,7 +68,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testNotNullFailsOnEmpty(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setNotNull();
         $el->setValue('');
 
@@ -76,7 +77,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testEmptyAllowedWhenNotNullNotSet(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setValue('');
 
         $this->assertTrue($el->validate());
@@ -84,7 +85,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testNegativeIntegerAllowed(): void
     {
-        $el = new FormElementInteger('offset', 'Offset');
+        $el = new ElementInteger('offset', 'Offset');
         $el->setValue('-5');
 
         $this->assertTrue($el->validate());
@@ -92,7 +93,7 @@ class FormElementIntegerTest extends TestCase
 
     public function testTrimsWhitespace(): void
     {
-        $el = new FormElementInteger('port', 'Port');
+        $el = new ElementInteger('port', 'Port');
         $el->setValue(' 80 ');
 
         $this->assertTrue($el->validate());

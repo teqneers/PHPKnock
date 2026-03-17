@@ -1,5 +1,6 @@
 <?php
 
+use PHPKnock\ButtonBar;
 use PHPUnit\Framework\TestCase;
 
 class ButtonBarTest extends TestCase

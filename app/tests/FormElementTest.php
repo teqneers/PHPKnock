@@ -1,12 +1,13 @@
 <?php
 
+use PHPKnock\Form\Element\Text as ElementText;
 use PHPUnit\Framework\TestCase;
 
 class FormElementTest extends TestCase
 {
     public function testNotNullFailsOnEmptyValue(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setNotNull();
         $el->setValue('');
 
@@ -16,7 +17,7 @@ class FormElementTest extends TestCase
 
     public function testNotNullPassesOnNonEmptyValue(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setNotNull();
         $el->setValue('hello');
 
@@ -26,7 +27,7 @@ class FormElementTest extends TestCase
 
     public function testValidRegExpPassesOnMatch(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setValidRegExp('/^[0-9]+$/');
         $el->setValue('12345');
 
@@ -36,7 +37,7 @@ class FormElementTest extends TestCase
 
     public function testValidRegExpFailsOnMismatch(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setValidRegExp('/^[0-9]+$/');
         $el->setValue('abc');
 
@@ -46,7 +47,7 @@ class FormElementTest extends TestCase
 
     public function testValidRegExpSkipsValidationWhenEmpty(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setValidRegExp('/^[0-9]+$/');
         $el->setValue('');
 
@@ -58,7 +59,7 @@ class FormElementTest extends TestCase
     {
         // The text element trims the value before regexp matching,
         // so " 123 " should match /^[0-9]+$/
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setValidRegExp('/^[0-9]+$/');
         $el->setValue(' 123 ');
 
@@ -67,7 +68,7 @@ class FormElementTest extends TestCase
 
     public function testDbValueReturnsSetValue(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setDbValue('stored');
 
         $this->assertSame('stored', $el->dbValue());
@@ -75,7 +76,7 @@ class FormElementTest extends TestCase
 
     public function testDefaultValueUsedWhenEmpty(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setDefaultValue('default');
 
         $this->assertSame('default', $el->defaultValue());
@@ -83,14 +84,14 @@ class FormElementTest extends TestCase
 
     public function testIsEmptyTrueWhenNoValue(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
 
         $this->assertTrue($el->isEmpty());
     }
 
     public function testIsEmptyFalseWhenValueSet(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setValue('hello');
 
         $this->assertFalse($el->isEmpty());
@@ -98,7 +99,7 @@ class FormElementTest extends TestCase
 
     public function testHtmlValueEscapesSpecialChars(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setValue('<b>bold</b> & "quoted"');
 
         $this->assertStringContainsString('&lt;b&gt;', $el->htmlValue());
@@ -108,7 +109,7 @@ class FormElementTest extends TestCase
 
     public function testHtmlFormRowContainsTableRow(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
 
         $html = $el->htmlFormRow();
 
@@ -118,7 +119,7 @@ class FormElementTest extends TestCase
 
     public function testHtmlFormRowContainsLabel(): void
     {
-        $el = new FormElementText('myfield', 'My Label');
+        $el = new ElementText('myfield', 'My Label');
 
         $html = $el->htmlFormRow();
 
@@ -127,7 +128,7 @@ class FormElementTest extends TestCase
 
     public function testHtmlFormRowContainsInputName(): void
     {
-        $el = new FormElementText('myfield', 'My Label');
+        $el = new ElementText('myfield', 'My Label');
 
         $html = $el->htmlFormRow();
 
@@ -136,7 +137,7 @@ class FormElementTest extends TestCase
 
     public function testHtmlFormRowShowsErrorMessageOnError(): void
     {
-        $el = new FormElementText('field', 'Field');
+        $el = new ElementText('field', 'Field');
         $el->setNotNull();
         $el->setValue('');
         $el->validate();
@@ -148,7 +149,7 @@ class FormElementTest extends TestCase
 
     public function testSetDbValueFromArrayExtractsNamedKey(): void
     {
-        $el = new FormElementText('username', 'Username');
+        $el = new ElementText('username', 'Username');
         $el->setDbValue([['username' => 'alice']]);
 
         $this->assertSame('alice', $el->dbValue());

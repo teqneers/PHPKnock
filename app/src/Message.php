@@ -21,23 +21,13 @@
  * THE SOFTWARE.
  */
 
-/**
- * Message Class
- *
- * @author         Oliver G. Mueller <mueller@teqneers.de>
- * @package        PHPKnock
- * @subpackage     Classes
- * @copyright      Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved
- */
+namespace PHPKnock;
 
 /**
  * Message Class
  *
  * Messages, Warning and Errors can be displayed,
  * added or cleared.
- *
- * @package        PHPKnock
- * @subpackage     Classes
  */
 class Message
 {
@@ -112,8 +102,8 @@ class Message
             } else {
                 // only add unique messages
                 $this->_messageList[md5($message)] = $message;
-            } // if
-        } // if
+            }
+        }
     }
 
     /**
@@ -133,8 +123,8 @@ class Message
             } else {
                 // only add unique messages
                 $this->_noticeList[md5($notice)] = $notice;
-            } // if
-        } // if
+            }
+        }
     }
 
     /**
@@ -154,8 +144,8 @@ class Message
             } else {
                 // only add unique messages
                 $this->_warningList[md5($warning)] = $warning;
-            } // if
-        } // if
+            }
+        }
     }
 
     /**
@@ -175,8 +165,8 @@ class Message
             } else {
                 // only add unique messages
                 $this->_errorList[md5($error)] = $error;
-            } // if
-        } // if
+            }
+        }
     }
 
     /**

@@ -21,22 +21,12 @@
  * THE SOFTWARE.
  */
 
-/**
- * Button Bar Class
- *
- * @author         Oliver G. Mueller <mueller@teqneers.de>
- * @package        PHPKnock
- * @subpackage     Classes
- * @copyright      Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved
- */
+namespace PHPKnock;
 
 /**
  * Button Bar Class
  *
  * This class represents an HTML button bar.
- *
- * @package        PHPKnock
- * @subpackage     Classes
  */
 class ButtonBar
 {
@@ -71,11 +61,6 @@ class ButtonBar
 
     /**
      * Add an element
-     *
-     * This method is a helper function that makes it easier to use the
-     * display classes. This will get the default parameter to handle
-     * for a simple element and add it to the element list. It will override
-     * the base method, because buttons will often use images.
      *
      * @param  string       $key     Key used as unique identifier
      * @param  string       $name    Name

@@ -21,24 +21,16 @@
  * THE SOFTWARE.
  */
 
-/**
- * Form Element Text Class
- *
- * @author       Oliver G. Mueller <mueller@teqneers.de>
- * @package      PHPKnock
- * @subpackage   Classes
- * @copyright    Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved
- */
+namespace PHPKnock\Form\Element;
+
+use PHPKnock\Form\Element;
 
 /**
  * Form Element Text Class
  *
  * This class represents a single html form element of a type text.
- *
- * @package        PHPKnock
- * @subpackage     Classes
  */
-class FormElementText extends FormElement
+class Text extends Element
 {
 
     #######################################################################
@@ -46,11 +38,6 @@ class FormElementText extends FormElement
     #######################################################################
     /**
      * Validate value against this regular expression
-     *
-     * If this value is set to anything not empty, the value will be validated
-     * against this regular expression (PCRE compatible, not POSIX!).
-     * This value might produce an {@link setError()} if the regular expression
-     * is not found in {@link value()}.
      */
     protected string $_validRegExp = '';
 
@@ -70,15 +57,10 @@ class FormElementText extends FormElement
 
 
     /**
-     * This function will validate the element's value against defined validation rules (e.g., not null, ...)
-     *
-     * The validation will also activate the error flag if any
-     * rule is broken, which will trigger the error message in
-     * form mode output.
+     * This function will validate the element's value against defined validation rules
      *
      * @return boolean        TRUE if no errors occurred
-     * @see    FormElement::validate()
-     * @see    setMaximumLength()
+     * @see    Element::validate()
      */
     public function validate(): bool
     {
@@ -87,7 +69,6 @@ class FormElementText extends FormElement
         $value = trim($this->value());
 
         // only use regexp validation if value is not empty.
-        // an empty value validation should be made with setNotNull()
         if (!$this->isEmpty() && $this->validRegExp() !== '' && !preg_match($this->validRegExp(), $value)) {
             $this->setError('REGEXP MISMATCH');
         }
@@ -98,21 +79,9 @@ class FormElementText extends FormElement
 
 
     #######################################################################
-    # data methods
-    #######################################################################
-
-
-    #######################################################################
-    # output methods
-    #######################################################################
-
-
-    #######################################################################
     # accessor methods
     #######################################################################
     /**
-     * Accessor
-     *
      * @return string        Valid PCRE compatible regular expression
      * @see    validate()
      * @see    setValidRegExp()
@@ -124,21 +93,8 @@ class FormElementText extends FormElement
 
 
     /**
-     * Accessor
-     *
-     * If this value is set to anything not empty, the value will be validated
-     * against this regular expression (PCRE compatible, not POSIX!).
-     * This value might produce an {@link setError()} if the regular expression
-     * is not found in {@link value()}.
-     *
-     * Example:
-     * An element which will only except numbers as a valid input:
-     * <code>
-     *   $element->setValidRegExp( '/^[0-9]+$/' );
-     * </code>
-     *
      * @param  string  $regExp  Valid regular expression (PCRE)
-     * @return FormElementText  Return $this for fluent interface (method chaining)
+     * @return Text             Return $this for fluent interface (method chaining)
      * @see    validRegExp()
      */
     public function setValidRegExp(string $regExp): self

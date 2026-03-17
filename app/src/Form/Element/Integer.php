@@ -21,24 +21,16 @@
  * THE SOFTWARE.
  */
 
-/**
- * Form Element Integer Class
- *
- * @author      Oliver G. Mueller <mueller@teqneers.de>
- * @package     PHPKnock
- * @subpackage  Classes
- * @copyright   Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved
- */
+namespace PHPKnock\Form\Element;
+
+use PHPKnock\Form\Element;
 
 /**
  * Form Element Integer Class
  *
  * This class represents a single html form element of type integer.
- *
- * @package      PHPKnock
- * @subpackage   Classes
  */
-class FormElementInteger extends FormElement
+class Integer extends Element
 {
 
     #######################################################################
@@ -74,10 +66,10 @@ class FormElementInteger extends FormElement
     # data methods
     #######################################################################
     /**
-     * This function will validate the element's value against defined validation rules (e.g. not null, ...)
+     * This function will validate the element's value against defined validation rules
      *
      * @return boolean        TRUE if no errors occurred
-     * @see    FormElement::validate()
+     * @see    Element::validate()
      * @see    setNotNull()
      */
     public function validate(): bool
@@ -86,8 +78,6 @@ class FormElementInteger extends FormElement
 
         $this->setValue(trim($this->value()));
 
-        // when notNull is false, and value is null return true and set value to null,
-        // otherwise return false
         if ($this->isEmpty()) {
             if ($this->notNull()) {
                 $this->setError('EMPTY VALUE');
@@ -100,9 +90,8 @@ class FormElementInteger extends FormElement
         // check chars
         $search = '(^[-+]?\d+$)';
         if (!preg_match($search, $this->value())) {
-            // invalid format
             $this->setError('INVALID FORMAT');
-        } // if
+        }
 
         $floatValue = (float)$this->value();
 
@@ -124,19 +113,12 @@ class FormElementInteger extends FormElement
     /**
      * Returns true if element's value is empty
      *
-     * An empty value will usually not display in text mode.
-     *
      * @return mixed
      */
     public function isEmpty(): bool
     {
         return ($this->value() === null || trim($this->value()) === '');
     }
-
-
-    #######################################################################
-    # output methods
-    #######################################################################
 
 
     #######################################################################

@@ -69,7 +69,13 @@ if (file_exists($pathLocalConfig)) {
     require $pathLocalConfig;
 }
 
+require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../functions.php';
+
+use PHPKnock\ButtonBar;
+use PHPKnock\Form;
+use PHPKnock\Html;
+use PHPKnock\Message;
 
 #############################################################################
 ###	LOAD DEFAULT FUNCTIONS AND CLASSES
@@ -111,11 +117,6 @@ define('URL', $URL);
 
 const CHARSET = 'UTF-8';
 
-
-#############################################################################
-###	LOAD DEFAULT FUNCTIONS AND CLASSES
-#############################################################################
-spl_autoload_register('autoload');
 
 // Start session for CSRF protection (web only)
 if (!CLI_CALL && session_status() === PHP_SESSION_NONE) {

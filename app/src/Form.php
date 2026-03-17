@@ -21,22 +21,15 @@
  * THE SOFTWARE.
  */
 
-/**
- * Form Class
- *
- * @author         Oliver G. Mueller <mueller@teqneers.de>
- * @package        PHPKnock
- * @subpackage     Classes
- * @copyright      Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved
- */
+namespace PHPKnock;
+
+use PHPKnock\Form\Element;
+use PHPKnock\Form\Element\Hidden;
 
 /**
  * Form Class
  *
  * This class represents an HTML form.
- *
- * @package        PHPKnock
- * @subpackage     Classes
  */
 class Form
 {
@@ -64,6 +57,17 @@ class Form
      */
     protected array $_errorList = [];
 
+    /**
+     * Maps short element type names to fully qualified class names
+     */
+    private const ELEMENT_TYPES = [
+        'Text'     => Element\Text::class,
+        'Password' => Element\Password::class,
+        'Integer'  => Element\Integer::class,
+        'Dropdown' => Element\Dropdown::class,
+        'Hidden'   => Hidden::class,
+    ];
+
 
     ##################################################
     # methods
@@ -90,26 +94,21 @@ class Form
      *
      * The created element is going to be added to this form as well.
      *
-     * IMPORTANT: certain elements will need more than one argument in their
-     * constructor. These args have to be added as well. The function keeps
-     * them in the same order.
-     *
      * HINT: to use autoloading, it might be necessary to be case-sensitive with $elementType.
      *
-     * @param  string  $elementType  Type of element, e.g. 'Text', 'DropdownDb', etc
+     * @param  string  $elementType  Type of element, e.g. 'Text', 'Dropdown', etc
      * @param  string  $elementName  Name of element
-     * @throws ReflectionException
      */
-    public function factory(string $elementType, string $elementName): FormElement
+    public function factory(string $elementType, string $elementName): Element
     {
         // arguments you wish to pass to constructor of the new object
         $args = func_get_args();
         array_shift($args);
 
         // class name of the new object
-        $className = 'FormElement' . $elementType;
-        if (!class_exists($className)) {
-            throw new \InvalidArgumentException(get_class($this) . ': Element of type "' . $className . '" does not exist.');
+        $className = self::ELEMENT_TYPES[$elementType] ?? null;
+        if ($className === null || !class_exists($className)) {
+            throw new \InvalidArgumentException(self::class . ': Element of type "' . $elementType . '" does not exist.');
         }
 
         $obj = new $className(...$args);
@@ -127,9 +126,9 @@ class Form
      *
      * @param  string  $name  Name of element
      */
-    public function element(string $name): ?FormElement
+    public function element(string $name): ?Element
     {
-        return $this->_elementList[$name] ?? null; // if
+        return $this->_elementList[$name] ?? null;
     }
 
 
@@ -138,36 +137,34 @@ class Form
      *
      * @see        fetchGlobal()
      * @see        fetchRequest()
-     * @see        FormElement::fetch()
+     * @see        Element::fetch()
      */
     public function fetch(): void
     {
         foreach ($this->_elementList as $elementItem) {
             $elementItem->fetch();
-        } // foreach
-
-    } // function
+        }
+    }
 
 
     /**
      * Will fetch data again
      *
-     * @see        FormElement::fetchGlobal()
+     * @see        Element::fetchGlobal()
      */
     public function fetchGlobal(): void
     {
         foreach ($this->_elementList as $elementItem) {
             $elementItem->fetchGlobal();
-        } // foreach
-
-    } // function
+        }
+    }
 
 
     /**
      * Validates all elements
      *
      * @return boolean                    TRUE indicates correct data, FALSE indicates an error
-     * @see    FormElement::validate()
+     * @see    Element::validate()
      */
     public function validate(): bool
     {
@@ -183,27 +180,27 @@ class Form
                 $valid                                  = false;
                 $this->_errorList[$elementItem->name()] = $elementItem->name();
             }
-        } // foreach
+        }
 
         return $valid;
-    } // function
+    }
 
 
     /**
      * Returns all DB values
      *
      * @return array
-     * @see    FormElement::dbValue()
+     * @see    Element::dbValue()
      */
     public function dbValues(): array
     {
         $ret = [];
         foreach ($this->_elementList as $elementItem) {
             $ret[$elementItem->name()] = $elementItem->dbValue();
-        } // foreach
+        }
 
         return $ret;
-    } // function
+    }
 
 
     #######################################################################
@@ -265,7 +262,7 @@ class Form
         // may crash if hidden fields are displayed between
         // table rows).
         foreach ($elementList as $key => $elementItem) {
-            if ($elementItem instanceof FormElementHidden) {
+            if ($elementItem instanceof Hidden) {
                 $html .= $elementItem->htmlFormRow();
                 unset($elementList[$key]);
             }

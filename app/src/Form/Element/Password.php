@@ -21,64 +21,77 @@
  * THE SOFTWARE.
  */
 
-/**
- * Form Element Hidden Class
- *
- * @author       Oliver G. Mueller <mueller@teqneers.de>
- * @package      PHPKnock
- * @subpackage   Classes
- * @copyright    Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved
- */
+namespace PHPKnock\Form\Element;
+
+use PHPKnock\Form\Element;
+use PHPKnock\Html;
 
 /**
- * Form Element Hidden Class
+ * Form Element Password Class
  *
- * This class represents a single html form element of the type hidden.
- *
- * @package       PHPKnock
- * @subpackage    Classes
+ * This class represents a single html form element of type password.
  */
-class FormElementHidden extends FormElement
+class Password extends Element
 {
-
-    #######################################################################
-    # attributes
-    #######################################################################
-
 
     #######################################################################
     # methods
     #######################################################################
-
-
-    #######################################################################
-    # data methods
-    #######################################################################
+    /**
+     * @param  string  $name   Name of form
+     * @param  string  $label  Label content
+     */
+    public function __construct(string $name, string $label)
+    {
+        parent::__construct($name);
+        $this->_label = $label;
+    }
 
 
     #######################################################################
     # output methods
     #######################################################################
+    /**
+     * Generate HTML form output for element
+     *
+     * @return string            HTML output
+     */
     public function htmlFormRow(): string
     {
+        $attr = [];
+
+        $labelAttr = Html::array2attributes($attr);
+
+        $label = '<label ' . Html::array2attributes($attr) . '>';
+
+        if ($this->hint() !== '') {
+            $label .= '<span style="cursor:help;" title="' . htmlentities(
+                    $this->hint(),
+                    ENT_QUOTES,
+                    CHARSET
+                ) . '">' . $this->label() . '</span>';
+        } else {
+            $label .= $this->label();
+        }
+        $label .= '</label>';
+
+
         if ($this->isEmpty() && $this->defaultValue() !== null) {
             $this->setDbValue($this->defaultValue());
         }
 
         // define HTML attributes for input field
         $attr = [
-            'type'  => 'hidden',
-            'name'  => 'data[' . $this->name() . ']',
-            'value' => $this->htmlValue(),
+            'type'       => 'password',
+            'name'       => 'data[' . $this->name() . ']',
+            'value'      => null,
+            'onkeypress' => 'if( event.keyCode==13 || event.which==13) this.form.submit();',
         ];
 
+        $value = '<input ' . Html::array2attributes($attr) . ' />';
         return '
-        <input ' . Html::array2attributes($attr) . ' />';
+		<tr><td ' . $labelAttr . '>' . $label . '</td><td>' . $value . $this->htmlErrorMessage() . '</td></tr>';
     }
 
-
-    #######################################################################
-    # accessor methods
-    #######################################################################
 
 }

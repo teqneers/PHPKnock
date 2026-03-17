@@ -1,5 +1,9 @@
 <?php
 
+use PHPKnock\Form;
+use PHPKnock\Form\Element\Text as ElementText;
+use PHPKnock\Form\Element\Dropdown as ElementDropdown;
+use PHPKnock\Form\Element\Hidden as ElementHidden;
 use PHPUnit\Framework\TestCase;
 
 class FormTest extends TestCase
@@ -9,7 +13,7 @@ class FormTest extends TestCase
         $form = new Form('test');
         $el   = $form->factory('Text', 'username', 'Username');
 
-        $this->assertInstanceOf(FormElementText::class, $el);
+        $this->assertInstanceOf(ElementText::class, $el);
         $this->assertSame('username', $el->name());
     }
 
@@ -18,7 +22,7 @@ class FormTest extends TestCase
         $form = new Form('test');
         $el   = $form->factory('Dropdown', 'country', 'Country', ['us' => 'USA']);
 
-        $this->assertInstanceOf(FormElementDropdown::class, $el);
+        $this->assertInstanceOf(ElementDropdown::class, $el);
     }
 
     public function testFactoryThrowsOnUnknownType(): void
@@ -34,7 +38,7 @@ class FormTest extends TestCase
         $form = new Form('test');
         $form->factory('Text', 'email', 'Email');
 
-        $this->assertInstanceOf(FormElementText::class, $form->element('email'));
+        $this->assertInstanceOf(ElementText::class, $form->element('email'));
     }
 
     public function testElementReturnsNullForUnknown(): void

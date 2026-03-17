@@ -1,12 +1,13 @@
 <?php
 
+use PHPKnock\Form\Element\Hidden as ElementHidden;
 use PHPUnit\Framework\TestCase;
 
 class FormElementHiddenTest extends TestCase
 {
     public function testHtmlFormRowUsesHiddenType(): void
     {
-        $el = new FormElementHidden('doKnock');
+        $el = new ElementHidden('doKnock');
 
         $html = $el->htmlFormRow();
 
@@ -15,7 +16,7 @@ class FormElementHiddenTest extends TestCase
 
     public function testHtmlFormRowIsNotInsideTableRow(): void
     {
-        $el = new FormElementHidden('doKnock');
+        $el = new ElementHidden('doKnock');
 
         $html = $el->htmlFormRow();
 
@@ -25,7 +26,7 @@ class FormElementHiddenTest extends TestCase
 
     public function testHtmlFormRowContainsNameAttribute(): void
     {
-        $el = new FormElementHidden('doKnock');
+        $el = new ElementHidden('doKnock');
 
         $html = $el->htmlFormRow();
 
@@ -34,7 +35,7 @@ class FormElementHiddenTest extends TestCase
 
     public function testHtmlFormRowReflectsValue(): void
     {
-        $el = new FormElementHidden('doKnock');
+        $el = new ElementHidden('doKnock');
         $el->setValue('1');
 
         $html = $el->htmlFormRow();
@@ -44,7 +45,7 @@ class FormElementHiddenTest extends TestCase
 
     public function testDefaultValueUsedWhenEmpty(): void
     {
-        $el = new FormElementHidden('doKnock');
+        $el = new ElementHidden('doKnock');
         $el->setDefaultValue('1');
 
         $html = $el->htmlFormRow();
@@ -54,7 +55,7 @@ class FormElementHiddenTest extends TestCase
 
     public function testValueIsHtmlEscaped(): void
     {
-        $el = new FormElementHidden('field');
+        $el = new ElementHidden('field');
         $el->setValue('<script>');
 
         $html = $el->htmlFormRow();

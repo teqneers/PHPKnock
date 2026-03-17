@@ -32,48 +32,6 @@
 
 
 /**
- * This method will automatically load classes
- *
- * @param  string  $class  Name of class
- * @return    bool                TRUE on successful inclusion, FALSE otherwise
- */
-function autoload(string $class): bool
-{
-    if (preg_match_all('/([A-Z][^A-Z]+)/', $class, $path)) {
-        if (end($path[1]) !== 'Interface') {
-            $type = 'class';
-        } else {
-            $type = 'interface';
-            array_pop($path[1]);
-        }
-
-        $i        = count($path[1]);
-        $filename = '';
-        $found    = false;
-        do {
-            $filename = empty($filename) ? array_pop($path[1]) : array_pop($path[1]) . '_' . $filename;
-            $include  = __DIR__ . '/classes/' . strtolower(
-                    implode(
-                        '/',
-                        $path[1]
-                    ) . '/' . $filename
-                ) . '_' . $type . '.php';
-            $found    = file_exists($include);
-        } while (!$found && count($path[1]));
-
-        if ($found) {
-            require $include;
-        }
-
-        return $found;
-
-    } // if
-
-    return false;
-}
-
-
-/**
  * Var_dump replacement
  *
  * @param  mixed        $dump  Dump var

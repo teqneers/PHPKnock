@@ -21,23 +21,13 @@
  * THE SOFTWARE.
  */
 
-/**
- * HTML Class
- *
- * @author         Oliver G. Mueller <mueller@teqneers.de>
- * @package        PHPKnock
- * @subpackage     Classes
- * @copyright      Copyright (C) 2003-2026 TEQneers GmbH & Co. KG. All rights reserved
- */
+namespace PHPKnock;
 
 /**
  * HTML Class
  *
  * This class helps to keep the html headers and footers
  * correct and alike.
- *
- * @package        PHPKnock
- * @subpackage     Classes
  */
 class Html
 {
@@ -226,8 +216,8 @@ class Html
     {
         if (array_key_exists($css, $this->_styleSheetList)) {
             unset($this->_styleSheetList[$css]);
-        } // if
-    } // function
+        }
+    }
 
 
     /**
@@ -289,7 +279,7 @@ class Html
     {
         if (array_key_exists($script, $this->_javaScriptList)) {
             unset($this->_javaScriptList[$script]);
-        } // if
+        }
     }
 
     /**
@@ -355,7 +345,6 @@ class Html
             header('Content-Type: text/html; charset=' . CHARSET);
         }
 
-        // echo '<?xml version="1.0"? >';
         $header .= '<!DOCTYPE html>';
 
         $header .= '
@@ -381,8 +370,8 @@ class Html
                 $type = ($style['alternative']) ? 'alternative stylesheet' : 'stylesheet';
                     $header .= '
 	<link rel="' . $type . '" type="text/css" href="' . $style['css'] . '" title="' . $style['title'] . '" media="' . $style['media'] . '" />';
-            } // foreach
-        } // if
+            }
+        }
 
         if (!$this->_deferJavascript && count($this->_javaScriptList) > 0) {
             $header .= '
