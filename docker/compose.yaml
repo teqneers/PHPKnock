@@ -1,0 +1,14 @@
+---
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../app:/app:ro
+      - ../tmp:/app/tmp
+
+# vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent
