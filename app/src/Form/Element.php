@@ -39,13 +39,13 @@ class Element
     /**
      * Name of this form element
      */
-    protected ?string $_name = null;
+    protected string $_name;
 
 
     /**
      * The name is used as a label
      */
-    protected ?string $_label = null;
+    protected string $_label = '';
 
 
     /**
@@ -110,9 +110,12 @@ class Element
     public function fetch(): void
     {
         // find out if this value came out of the DB or from a form
-        if (isset($_REQUEST['data'][$this->_name])) {
+        $requestData = $_REQUEST['data'] ?? null;
+        $globalData = $GLOBALS['data'] ?? null;
+
+        if (is_array($requestData) && array_key_exists($this->_name, $requestData)) {
             $this->fetchRequest();
-        } elseif (isset($GLOBALS['data'][$this->_name])) {
+        } elseif (is_array($globalData) && array_key_exists($this->_name, $globalData)) {
             $this->fetchGlobal();
         } else {
             // no value has been set.
@@ -126,9 +129,10 @@ class Element
      */
     public function fetchGlobal(): void
     {
-        $global = &$GLOBALS['data'][$this->_name];
-
-        $this->setDbValue($global);
+        $data = $GLOBALS['data'] ?? null;
+        if (is_array($data) && array_key_exists($this->_name, $data)) {
+            $this->setDbValue($data[$this->_name]);
+        }
     }
 
 
@@ -138,10 +142,11 @@ class Element
     public function fetchRequest(): void
     {
         // The value was delivered by a request. Keep it like it is
-        $global = &$_REQUEST['data'][$this->_name];
-
+        $data = $_REQUEST['data'] ?? null;
         $this->_isValidated = false;
-        $this->setValue($global);
+        if (is_array($data) && array_key_exists($this->_name, $data)) {
+            $this->setValue($data[$this->_name]);
+        }
     }
 
 
@@ -215,10 +220,13 @@ class Element
     {
         if (!is_array($newValue)) {
             $this->_value = $newValue;
-        } elseif (isset($newValue[0][$this->name()])) {
-            $this->_value = $newValue[0][$this->name()];
         } else {
-            $this->_value = null;
+            $first = $newValue[0] ?? null;
+            if (is_array($first) && isset($first[$this->name()])) {
+                $this->_value = $first[$this->name()];
+            } else {
+                $this->_value = null;
+            }
         }
 
         return $this;
@@ -246,7 +254,8 @@ class Element
      */
     public function htmlValue(): string
     {
-        return htmlspecialchars((string)$this->value(), ENT_QUOTES, CHARSET);
+        $value = $this->value();
+        return htmlspecialchars(is_scalar($value) ? (string)$value : '', ENT_QUOTES, CHARSET);
     }
 
 
@@ -290,7 +299,7 @@ class Element
         $value = '<input ' . Html::array2attributes($attr) . ' />';
 
         return '
-		<tr><td ' . $labelAttr . '>' . $label . '</td><td>' . $value . $this->htmlErrorMessage() . '</td></tr>';
+		<div class="form-group">' . $label . '<div class="form-input">' . $value . $this->htmlErrorMessage() . '</div></div>';
     }
 
     /**
@@ -302,7 +311,7 @@ class Element
     {
         if ($this->error()) {
             return '
-			<br /><span style="color: red;">Invalid value.</span>';
+			<br /><span class="form-error">Invalid value.</span>';
         }
 
         return null;
@@ -370,11 +379,11 @@ class Element
     }
 
     /**
-     * @param  mixed  $newValue  Boolean value or occurred error type
-     * @return Element           Return $this for fluent interface (method chaining)
+     * @param  bool|string  $newValue  Boolean value or occurred error type
+     * @return Element                 Return $this for fluent interface (method chaining)
      * @see    error()
      */
-    public function setError($newValue = true): self
+    public function setError(bool|string $newValue = true): self
     {
         $this->_error = (bool)$newValue;
 
@@ -407,10 +416,13 @@ class Element
     {
         if (!is_array($newValue)) {
             $this->_value = $newValue;
-        } elseif (isset($newValue[0][$this->name()])) {
-            $this->_value = $newValue[0][$this->name()];
         } else {
-            $this->_value = null;
+            $first = $newValue[0] ?? null;
+            if (is_array($first) && isset($first[$this->name()])) {
+                $this->_value = $first[$this->name()];
+            } else {
+                $this->_value = null;
+            }
         }
 
         return $this;
@@ -428,11 +440,11 @@ class Element
 
 
     /**
-     * @param  string  $newValue  Default value
-     * @return Element            Return $this for fluent interface (method chaining)
+     * @param  mixed  $newValue  Default value
+     * @return Element           Return $this for fluent interface (method chaining)
      * @see    defaultValue()
      */
-    public function setDefaultValue($newValue): self
+    public function setDefaultValue(mixed $newValue): self
     {
         $this->_default = $newValue;
 

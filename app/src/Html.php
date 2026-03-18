@@ -37,6 +37,8 @@ class Html
     #######################################################################
     /**
      * This contains the body tag attribute list
+     *
+     * @var array<string, string>
      */
     protected array $_attributeList = [];
 
@@ -47,11 +49,15 @@ class Html
 
     /**
      * This will hold information of all javascript that must be included
+     *
+     * @var array<string, string>
      */
     protected array $_javaScriptList = [];
 
     /**
      * This will hold information of all stylesheets that should be available
+     *
+     * @var array<string, array{css: string, media: string, title: string, alternative: bool, conditional: string|null}>
      */
     protected array $_styleSheetList = [];
 
@@ -67,6 +73,8 @@ class Html
 
     /**
      * Additional meta attributes
+     *
+     * @var list<array<string, string>>
      */
     protected array $_metaList = [];
 
@@ -87,9 +95,10 @@ class Html
      * IMPORTANT: all keys are lowercase.
      *
      * @param  string|null  $key  Name of attribute
+     * @return ($key is null ? array<string, string> : string|null)
      * @see    setBodyAttribute
      */
-    public function bodyAttribute(?string $key = null)
+    public function bodyAttribute(?string $key = null): array|string|null
     {
         if ($key === null) {
             return $this->_attributeList;
@@ -245,7 +254,7 @@ class Html
     /**
      * Returns a list of all JavaScripts
      *
-     * @return array
+     * @return list<string>
      * @see    dropJavaScript()
      * @see    addJavaScript()
      */
@@ -302,7 +311,7 @@ class Html
 
 
     /**
-     * @return array                    Attribute array
+     * @return list<array<string, string>>  Attribute array
      * @see    addMeta()
      */
     public function meta(): array
@@ -316,7 +325,7 @@ class Html
      *
      * A single meta-tag should be defined as an array containing a key=>value list for all attributes to add to.
      *
-     * @param  array  $attr  Attribute array
+     * @param  array<string, string>  $attr  Attribute array
      * @see    meta()
      */
     public function addMeta(array $attr): void
@@ -442,7 +451,7 @@ class Html
      * Its using keys as attribute name and values as attribute value.
      * Very useful to convert an array into HTML tag attributes.
      *
-     * @param  array  $attributes  Associative array with attribute values
+     * @param  array<string, string|int|float|bool|null|array<string, string|int|float|bool|null>>  $attributes  Associative array with attribute values
      * @return string              Imploded array like: key="value" key="value" ...
      */
     public static function array2attributes(array $attributes): string

@@ -43,30 +43,24 @@ class Form
 
     /**
      * List of form elements
+     *
+     * @var array<string, Element>
      */
     protected array $_elementList = [];
 
     /**
      * This contains the form tag attribute list
+     *
+     * @var array<string, string>
      */
     protected array $_attributeList = [];
 
     /**
      * List of errors, which occured during validation
+     *
+     * @var array<string, string>
      */
     protected array $_errorList = [];
-
-    /**
-     * Maps short element type names to fully qualified class names
-     */
-    private const ELEMENT_TYPES = [
-        'Text'     => Element\Text::class,
-        'Password' => Element\Password::class,
-        'Integer'  => Element\Integer::class,
-        'Dropdown' => Element\Dropdown::class,
-        'Hidden'   => Element\Hidden::class,
-    ];
-
 
     ##################################################
     # methods
@@ -80,7 +74,7 @@ class Form
 
         // define default form attributes
         $this->setAttribute('name', $name);
-        $this->setAttribute('action', $_SERVER['SCRIPT_NAME']);
+        $this->setAttribute('action', is_string($_SERVER['SCRIPT_NAME'] ?? null) ? $_SERVER['SCRIPT_NAME'] : '');
         $this->setAttribute('method', 'post');
     }
 
@@ -97,20 +91,19 @@ class Form
      *
      * @param  string  $elementType  Type of element, e.g. 'Text', 'Dropdown', etc
      * @param  string  $elementName  Name of element
+     * @param  string  $label        Label for the element (not used for Hidden)
+     * @param  array<string|int, string>  $options  Options for Dropdown element
      */
-    public function factory(string $elementType, string $elementName): Element
+    public function factory(string $elementType, string $elementName, string $label = '', array $options = []): Element
     {
-        // arguments you wish to pass to constructor of the new object
-        $args = func_get_args();
-        array_shift($args);
-
-        // class name of the new object
-        $className = self::ELEMENT_TYPES[$elementType] ?? null;
-        if ($className === null || !class_exists($className)) {
-            throw new \InvalidArgumentException(self::class . ': Element of type "' . $elementType . '" does not exist.');
-        }
-
-        $obj = new $className(...$args);
+        $obj = match ($elementType) {
+            'Text' => new Element\Text($elementName, $label),
+            'Password' => new Element\Password($elementName, $label),
+            'Integer' => new Element\Integer($elementName, $label),
+            'Dropdown' => new Element\Dropdown($elementName, $label, $options),
+            'Hidden' => new Element\Hidden($elementName),
+            default => throw new \InvalidArgumentException(self::class . ': Element of type "' . $elementType . '" does not exist.'),
+        };
 
         $this->_elementList[$obj->name()] = $obj;
         return $obj;
@@ -188,7 +181,7 @@ class Form
     /**
      * Returns all DB values
      *
-     * @return array
+     * @return array<string, mixed>
      * @see    Element::dbValue()
      */
     public function dbValues(): array
@@ -254,7 +247,7 @@ class Form
      */
     public function htmlFormBody(): string
     {
-        $html = null;
+        $html = '';
 
         $elementList = $this->_elementList;
         // display hidden fields first (browsers like IE 6/7
@@ -268,8 +261,7 @@ class Form
         }
 
         $html .= '
-		<table class="formClass">
-		<tbody>';
+		<div class="form-fields">';
 
         foreach ($elementList as $elementItem) {
             // display group-less elements
@@ -277,8 +269,7 @@ class Form
         }
 
         $html .= '
-		</tbody>
-		</table>';
+		</div>';
 
         return $html;
     }
@@ -344,7 +335,7 @@ class Form
      * IMPORTANT: all keys are lowercase.
      *
      * @param  string|null  $key  Name of attribute
-     * @return null|string|array  Attribute value
+     * @return ($key is null ? array<string, string> : string|null)
      * @see    setAttribute
      */
     public function attribute(?string $key = null)

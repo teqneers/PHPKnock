@@ -90,7 +90,7 @@ class Password extends Element
 
         $value = '<input ' . Html::array2attributes($attr) . ' />';
         return '
-		<tr><td ' . $labelAttr . '>' . $label . '</td><td>' . $value . $this->htmlErrorMessage() . '</td></tr>';
+		<div class="form-group">' . $label . '<div class="form-input">' . $value . $this->htmlErrorMessage() . '</div></div>';
     }
 
 

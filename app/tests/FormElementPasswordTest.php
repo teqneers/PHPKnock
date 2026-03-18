@@ -43,14 +43,14 @@ class FormElementPasswordTest extends TestCase
         $this->assertStringContainsString('name="data[encKey]"', $html);
     }
 
-    public function testHtmlFormRowRenderedInTableRow(): void
+    public function testHtmlFormRowRenderedInFormGroup(): void
     {
         $el = new ElementPassword('encKey', 'Encryption Key');
 
         $html = $el->htmlFormRow();
 
-        $this->assertStringContainsString('<tr>', $html);
-        $this->assertStringContainsString('</tr>', $html);
+        $this->assertStringContainsString('form-group', $html);
+        $this->assertStringContainsString('form-input', $html);
     }
 
     public function testHintShowsInSpan(): void

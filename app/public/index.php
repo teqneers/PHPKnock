@@ -75,6 +75,7 @@ require __DIR__ . '/../functions.php';
 use PHPKnock\ButtonBar;
 use PHPKnock\Form;
 use PHPKnock\Html;
+use PHPKnock\KnockService;
 use PHPKnock\Message;
 
 #############################################################################
@@ -155,57 +156,6 @@ if (function_exists('pcntl_signal')) {
 
     $cleanup = new CleanUp();
 }
-
-/**
- * Checks per-IP rate limit using a file lock in PATH_FS_TMP.
- *
- * Returns true when the request is within the allowed limit, false when exceeded.
- */
-function checkRateLimit(string $ip, int $limit, int $window): bool
-{
-    $file = PATH_FS_TMP . '/rl_' . md5($ip) . '.json';
-    $fh   = @fopen($file, 'c+');
-    if ($fh === false) {
-        return true; // fail open: don't block if tmp is unexpectedly unwritable
-    }
-
-    flock($fh, LOCK_EX);
-
-    $content = stream_get_contents($fh);
-    $data    = $content ? json_decode($content, true) : null;
-    $now     = time();
-
-    if (!$data || ($now - $data['since']) >= $window) {
-        $data = ['count' => 0, 'since' => $now];
-    }
-    $data['count']++;
-
-    ftruncate($fh, 0);
-    rewind($fh);
-    fwrite($fh, json_encode($data));
-    flock($fh, LOCK_UN);
-    fclose($fh);
-
-    return $data['count'] <= $limit;
-}
-
-
-/**
- * Returns true when $host is a valid IPv4/IPv6 address or a valid RFC 1123 hostname.
- */
-function isValidHost(string $host): bool
-{
-    if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
-        return true;
-    }
-    // RFC 1123: each label 1-63 chars (letters, digits, hyphens), total ≤ 253
-    return strlen($host) <= 253
-        && (bool)preg_match(
-            '/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$/',
-            $host
-        );
-}
-
 
 /**
  * Builds and returns form
@@ -296,6 +246,13 @@ if (!is_writable(PATH_FS_TMP)) {
 #############################################################################
 ###	ACTION
 #############################################################################
+$knockService = new KnockService(
+    fwknopCli: $FWKNOP_CLI,
+    tmpPath: PATH_FS_TMP,
+    passwordFilePath: PATH_FS_PASSWORD,
+    verbose: $ERRORS_VERBOSE,
+);
+
 if (!$error && $form->element('doKnock')->value() === '1') {
     // CSRF check
     if (!CLI_CALL && !hash_equals(
@@ -307,7 +264,7 @@ if (!$error && $form->element('doKnock')->value() === '1') {
     }
 
     // Rate limit check
-    if (!$error && !checkRateLimit($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0', $RATE_LIMIT, $RATE_WINDOW)) {
+    if (!$error && !$knockService->checkRateLimit($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0', $RATE_LIMIT, $RATE_WINDOW)) {
         $message->addError('Too many requests. Please wait before trying again.');
         $error = true;
     }
@@ -316,125 +273,19 @@ if (!$error && $form->element('doKnock')->value() === '1') {
 if (!$error && $form->element('doKnock')->value() === '1' && $form->validate()) {
     $encryptionKey = $ENCRYPTION_KEY ?? $form->element('encryptionKey')->dbValue();
 
-    $execute = [$FWKNOP_CLI];
+    $execute = $knockService->buildCommand(
+        allowIp: $form->element('allowIp')->dbValue(),
+        configServerPort: $SERVER_PORT,
+        formServerPort: $form->element('serverPort')?->dbValue(),
+        configAccessPortList: $ACCESS_PORT_LIST,
+        formAccessPortList: $form->element('accessPortList')?->dbValue(),
+    );
 
-    if ($ERRORS_VERBOSE) {
-        $execute['verbose'] = '--verbose';
-    }
-
-    $execute['G'] = '-G ' . escapeshellarg(escapeshellcmd(PATH_FS_PASSWORD));
-
-    if ($SERVER_PORT !== null) {
-        $execute['server-port'] = '--server-port ' . $SERVER_PORT;
-    } elseif (!$form->element('serverPort')->isEmpty()) {
-        $execute['server-port'] = '--server-port ' . escapeshellarg(
-                escapeshellcmd($form->element('serverPort')->dbValue())
-            );
-    }
-
-    if ($ACCESS_PORT_LIST !== null) {
-        $execute['A'] = '-A ' . escapeshellarg($ACCESS_PORT_LIST);
-    } elseif (!$form->element('accessPortList')->isEmpty()) {
-        $execute['A'] = '-A ' . escapeshellarg(
-                escapeshellcmd(str_replace(' ', '', $form->element('accessPortList')->dbValue()))
-            );
-    }
-
-    $execute['a'] = '-a ' . escapeshellarg(escapeshellcmd($form->element('allowIp')->dbValue()));
-
-    $hosts = [];
-    if (is_string($DESTINATION)) {
-        // destination is given as fix value by configuration
-        if (!str_contains($DESTINATION, ';')) {
-            $hosts = [$DESTINATION];
-        } else {
-            $hosts = array_map('trim', explode(';', $DESTINATION));
-        }
-    } elseif (!$form->element('destination')->isEmpty()) {
-        $value = $form->element('destination')->dbValue();
-        if (is_array($DESTINATION)) {
-            // destinations are in dropdown
-            $hosts = [];
-            foreach ($value as $key) {
-                if ((string)(int)$key === $key) {
-                    $hosts[] = $DESTINATION[$key];
-                } else {
-                    $hosts[] = $key;
-                }
-            }
-        } elseif (!str_contains($value, ';')) {
-            $hosts = [$value];
-        } else {
-            $hosts = array_map('trim', explode(';', $value));
-        }
-    }
-
-    $descriptorspec = [
-        0 => ["pipe", "r+"],    // STDIN ist eine Pipe, von der das Child liest
-        1 => ["pipe", "w"],    // STDOUT ist eine Pipe, in die das Child schreibt
-        2 => ["pipe", "w"],    // STDERR
-    ];
-
-    $env = [
-        'HOME' => PATH_FS_TMP,
-    ];
+    $formValue = $form->element('destination')?->dbValue();
+    $hosts = KnockService::resolveHosts($DESTINATION, $formValue);
 
     foreach ($hosts as $target) {
-        if (!isValidHost($target)) {
-            $message->addError('Invalid destination: "' . htmlspecialchars($target, ENT_QUOTES, CHARSET) . '".');
-            continue;
-        }
-
-        file_put_contents(PATH_FS_PASSWORD, $target . ':' . $encryptionKey);
-        chmod(PATH_FS_PASSWORD, 0600);
-
-        $execute['D'] = '-D ' . escapeshellarg(escapeshellcmd($target));
-
-        // execute command on CLI and check return code
-        // forward errors to stdout to see them in output
-        $cmd = implode(' ', $execute) . ' 2>&1';
-
-        $process = proc_open($cmd, $descriptorspec, $pipes, PATH_FS_TMP, $env);
-
-        if (is_resource($process)) {
-            //fwrite( $pipes[0], $encryptionKey );
-            fclose($pipes[0]);
-
-            $output = stream_get_contents($pipes[1]);
-            $error  = stream_get_contents($pipes[2]);
-            fclose($pipes[1]);
-            fclose($pipes[2]);
-
-            // it's important to close all pipes before doing
-            // a proc_close to prevent deadlocks
-            $return = proc_close($process);
-
-
-            if ($return === 0) {
-                $message->addMessage(
-                    'Knock send successfully to "' . $target . '". With correct settings, you should be able to access the server for a limited time now.'
-                );
-            } else {
-                if (!empty($output) && !empty($error)) {
-                    $output .= "\n$error";
-                }
-                $output = preg_replace("(\n$)", '', $output);
-                $message->addError(
-                    'Unable to execute fwknop. It says: "' . str_replace(
-                        "\n",
-                        "<br />\n",
-                        htmlspecialchars($output) . '".'
-                    )
-                );
-            }
-
-            if ($ERRORS_VERBOSE) {
-                $message->addMessage(
-                    'Command:<br />' . htmlspecialchars(str_replace($encryptionKey, '****', $cmd)) .
-                    '<br /><br />Output:<br />' . str_replace("\n", "<br />\n", htmlspecialchars($output))
-                );
-            }
-        }
+        $knockService->execute($target, $encryptionKey, $execute, $message, CHARSET);
     }
 }
 

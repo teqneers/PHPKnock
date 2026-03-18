@@ -62,21 +62,29 @@ class Message
     #######################################################################
     /**
      * List of all errors occurred
+     *
+     * @var array<string, string>
      */
     protected array $_errorList = [];
 
     /**
      * List of all warnings occurred
+     *
+     * @var array<string, string>
      */
     protected array $_warningList = [];
 
     /**
      * List of all notices occurred
+     *
+     * @var array<string, string>
      */
     protected array $_noticeList = [];
 
     /**
      * List of all messages occurred
+     *
+     * @var array<string, string>
      */
     protected array $_messageList = [];
 
@@ -90,7 +98,7 @@ class Message
      *
      * HINT: duplicate messages will be overwritten
      *
-     * @param  string|array  $message  Message text
+     * @param  string|array<int|string, string>  $message  Message text
      */
     public function addMessage(string|array $message): void
     {
@@ -111,7 +119,7 @@ class Message
      *
      * HINT: duplicate messages will be overwritten
      *
-     * @param  array|string  $notice  Notice text
+     * @param  array<int|string, string>|string  $notice  Notice text
      */
     public function addNotice(array|string $notice): void
     {
@@ -132,7 +140,7 @@ class Message
      *
      * HINT: duplicate messages will be overwritten
      *
-     * @param  array|string  $warning  Warning text
+     * @param  array<int|string, string>|string  $warning  Warning text
      */
     public function addWarning(array|string $warning): void
     {
@@ -153,7 +161,7 @@ class Message
      *
      * HINT: duplicate messages will be overwritten
      *
-     * @param  array|string  $error  Error text
+     * @param  array<int|string, string>|string  $error  Error text
      */
     public function addError(array|string $error): void
     {
@@ -178,6 +186,7 @@ class Message
      *
      * @param  int|null  $messageTypes  Which messages to render (use Message::* bitflags)
      * @param  boolean   $cleanup       Clean up all messages after output
+     * @return array<string, array<string, string>>
      */
     public function get(?int $messageTypes = self::ALL, bool $cleanup = true): array
     {
@@ -210,6 +219,7 @@ class Message
      * - messages
      *
      * @param  boolean  $cleanup  Clean up all messages after output
+     * @return array<string, array<string, string>>
      */
     public function all(bool $cleanup = true): array
     {
@@ -220,7 +230,7 @@ class Message
      * Return an array of all messages
      *
      * @param  boolean  $cleanup  Clean up all messages after output
-     * @return array              Messages as an array
+     * @return array<string, string>  Messages as an array
      */
     public function messages(bool $cleanup = true): array
     {
@@ -238,7 +248,7 @@ class Message
      * Return an array of all notices
      *
      * @param  boolean  $cleanup  Clean up all notices after output
-     * @return array              Notices as an array
+     * @return array<string, string>  Notices as an array
      */
     public function notices(bool $cleanup = true): array
     {
@@ -256,7 +266,7 @@ class Message
      * Return an array of all warnings
      *
      * @param  boolean  $cleanup  Clean up all warnings after output
-     * @return array              Warnings as an array
+     * @return array<string, string>  Warnings as an array
      */
     public function warnings(bool $cleanup = true): array
     {
@@ -274,7 +284,7 @@ class Message
      * Return an array of all errors
      *
      * @param  boolean  $cleanup  Clean up all errors after output
-     * @return array              Errors as an array
+     * @return array<string, string>  Errors as an array
      */
     public function errors(bool $cleanup = true): array
     {

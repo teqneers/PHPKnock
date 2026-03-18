@@ -76,7 +76,9 @@ class Integer extends Element
     {
         $this->setError(false);
 
-        $this->setValue(trim($this->value()));
+        $rawValue = $this->value();
+        $stringValue = is_scalar($rawValue) ? (string)$rawValue : '';
+        $this->setValue(trim($stringValue));
 
         if ($this->isEmpty()) {
             if ($this->notNull()) {
@@ -89,11 +91,13 @@ class Integer extends Element
 
         // check chars
         $search = '(^[-+]?\d+$)';
-        if (!preg_match($search, $this->value())) {
+        $currentValue = $this->value();
+        $currentString = is_scalar($currentValue) ? (string)$currentValue : '';
+        if (!preg_match($search, $currentString)) {
             $this->setError('INVALID FORMAT');
         }
 
-        $floatValue = (float)$this->value();
+        $floatValue = (float)$currentString;
 
         // check minimum limit
         if ($this->minimum() !== null && $floatValue < $this->minimum()) {
@@ -115,7 +119,11 @@ class Integer extends Element
      */
     public function isEmpty(): bool
     {
-        return ($this->value() === null || trim($this->value()) === '');
+        $value = $this->value();
+        if ($value === null) {
+            return true;
+        }
+        return is_scalar($value) && trim((string)$value) === '';
     }
 
 

@@ -107,14 +107,14 @@ class FormElementTest extends TestCase
         $this->assertStringContainsString('&quot;', $el->htmlValue());
     }
 
-    public function testHtmlFormRowContainsTableRow(): void
+    public function testHtmlFormRowContainsFormGroup(): void
     {
         $el = new ElementText('field', 'Field');
 
         $html = $el->htmlFormRow();
 
-        $this->assertStringContainsString('<tr>', $html);
-        $this->assertStringContainsString('</tr>', $html);
+        $this->assertStringContainsString('form-group', $html);
+        $this->assertStringContainsString('form-input', $html);
     }
 
     public function testHtmlFormRowContainsLabel(): void
@@ -145,6 +145,7 @@ class FormElementTest extends TestCase
         $html = $el->htmlFormRow();
 
         $this->assertStringContainsString('Invalid value', $html);
+        $this->assertStringContainsString('form-error', $html);
     }
 
     public function testSetDbValueFromArrayExtractsNamedKey(): void

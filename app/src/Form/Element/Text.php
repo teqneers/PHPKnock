@@ -66,7 +66,8 @@ class Text extends Element
     {
         parent::validate();
 
-        $value = trim($this->value());
+        $rawValue = $this->value();
+        $value = trim(is_scalar($rawValue) ? (string)$rawValue : '');
 
         // only use regexp validation if value is not empty.
         if (!$this->isEmpty() && $this->validRegExp() !== '' && !preg_match($this->validRegExp(), $value)) {

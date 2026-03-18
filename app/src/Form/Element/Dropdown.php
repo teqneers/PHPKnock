@@ -39,6 +39,8 @@ class Dropdown extends Element
     #######################################################################
     /**
      * This array contains selectable options
+     *
+     * @var array<string|int, string>
      */
     protected array $_options = [];
 
@@ -65,9 +67,9 @@ class Dropdown extends Element
     # methods
     #######################################################################
     /**
-     * @param  string  $name     Database column name
-     * @param  string  $label    Label content
-     * @param  array   $options  Array containing values available for selection
+     * @param  string                    $name     Database column name
+     * @param  string                    $label    Label content
+     * @param  array<string|int, string> $options  Array containing values available for selection
      */
     public function __construct(string $name, string $label, array $options = [])
     {
@@ -91,9 +93,12 @@ class Dropdown extends Element
             $this->_value = $newValue;
         } elseif (is_array(reset($newValue))) {
             $this->_value = [];
-            if (isset($newValue[0][$this->name()])) {
+            $first = $newValue[0] ?? null;
+            if (is_array($first) && isset($first[$this->name()])) {
                 foreach ($newValue as $row) {
-                    $this->_value[] = $row[$this->name()];
+                    if (is_array($row) && array_key_exists($this->name(), $row)) {
+                        $this->_value[] = $row[$this->name()];
+                    }
                 }
             }
         } else {
@@ -109,9 +114,13 @@ class Dropdown extends Element
      */
     public function isEmpty(): bool
     {
-        return (is_array($this->_value) && count($this->_value) === 0) || (!is_array($this->_value) && strlen(
-                    (string)$this->_value
-                ) === 0);
+        if (is_array($this->_value)) {
+            return count($this->_value) === 0;
+        }
+        if (is_string($this->_value) || is_int($this->_value) || is_float($this->_value)) {
+            return strlen((string)$this->_value) === 0;
+        }
+        return $this->_value === null;
     }
 
 
@@ -128,19 +137,30 @@ class Dropdown extends Element
     {
         if (!is_array($newValue) || !is_array(reset($newValue))) {
             $this->_value = $newValue;
-        } elseif (isset($newValue[0][$this->name()])) {
-            $this->_value = $newValue[0][$this->name()];
         } else {
-            $this->_value = null;
+            $first = $newValue[0] ?? null;
+            if (is_array($first) && isset($first[$this->name()])) {
+                $this->_value = $first[$this->name()];
+            } else {
+                $this->_value = null;
+            }
         }
 
         // ensure that all preselected values are of type STRING.
         if ($this->_value !== null) {
 
             if (!is_array($this->_value)) {
-                $this->_value = (string)$this->_value;
+                if (is_string($this->_value) || is_int($this->_value) || is_float($this->_value) || is_bool($this->_value)) {
+                    $this->_value = (string)$this->_value;
+                }
             } else {
-                $this->_value = array_map('strval', $this->_value);
+                $stringValues = [];
+                foreach ($this->_value as $v) {
+                    if (is_scalar($v)) {
+                        $stringValues[] = (string)$v;
+                    }
+                }
+                $this->_value = $stringValues;
             }
 
         }
@@ -152,11 +172,11 @@ class Dropdown extends Element
     /**
      * Returns the current available options to choose from.
      *
-     * @param  mixed  $value   Optional option value
-     * @return array|mixed     Complete option array or related value name
+     * @param  string|int|null  $value  Optional option value
+     * @return ($value is null ? array<string|int, string> : string|null)
      * @see    setOptions()
      */
-    public function options($value = null)
+    public function options(string|int|null $value = null): array|string|null
     {
         if ($value === null) {
             return $this->_options;
@@ -169,8 +189,8 @@ class Dropdown extends Element
     /**
      * Define the current available options to choose from.
      *
-     * @param  array  $newValue  Key will be returned, value will be shown to the user
-     * @return Dropdown          Return $this for fluent interface (method chaining)
+     * @param  array<string|int, string>  $newValue  Key will be returned, value will be shown to the user
+     * @return Dropdown                             Return $this for fluent interface (method chaining)
      * @see    options()
      */
     public function setOptions(array $newValue): self
@@ -271,28 +291,26 @@ class Dropdown extends Element
 
         $output = '<select ' . Html::array2attributes($attr) . '>';
 
-        if (is_array($this->options())) {
-            foreach ($this->options() as $key => $option) {
-                $tmp        = count((array)$value) && in_array((string)$key, (array)$value, true) ? 'selected' : null;
-                $optionAttr = [
-                    'value'    => $key,
-                    'selected' => $tmp,
-                ];
+        foreach ($this->options() as $key => $option) {
+            $tmp        = count((array)$value) && in_array((string)$key, (array)$value, true) ? 'selected' : null;
+            $optionAttr = [
+                'value'    => $key,
+                'selected' => $tmp,
+            ];
 
-                $output .= '
+            $output .= '
 						<option ' . Html::array2attributes($optionAttr) . '>' . htmlspecialchars(
-                        $option,
-                        ENT_QUOTES,
-                        CHARSET
-                    ) . '</option>';
+                    $option,
+                    ENT_QUOTES,
+                    CHARSET
+                ) . '</option>';
 
-            }
         }
         $output .= '
 		</select>';
 
         return '
-		<tr><td ' . $labelAttr . '>' . $label . '</td><td>' . $output . $this->htmlErrorMessage() . '</td></tr>';
+		<div class="form-group">' . $label . '<div class="form-input">' . $output . $this->htmlErrorMessage() . '</div></div>';
     }
 
 

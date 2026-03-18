@@ -36,13 +36,11 @@ $html->displayHeader();
 echo '
 <div id="headerwrap">
 	<div id="header">
-		<table border="0" cellspacing="0" width="100%" class="menu">
-		<tr>
-			<td class="left"><img src="static/images/phpknock-image.png" alt="PHPKnock" height="40" /></td>
-			<td class="middle">' . PRODUCT_NAME . '</td>
-			<td class="right">&nbsp;</td>
-		</tr>
-		</table>
+		<div class="menu">
+			<div class="menu-left"><img src="static/images/phpknock-image.png" alt="PHPKnock" height="40"></div>
+			<div class="menu-center">' . PRODUCT_NAME . '</div>
+			<div class="menu-right"></div>
+		</div>
 	</div>
 </div>';
 
@@ -80,11 +78,11 @@ $form->displayFormFooter();
 echo '
 				<h1 class="legend">Legend</h1>
 
-				<div class="noticeHeader"><img src="static/images/notice.png" align="middle" border="0" alt="notice" title="notice" />&nbsp;Origin</div>
+				<div class="noticeHeader"><img src="static/images/notice.png" alt="notice" title="notice">&nbsp;Origin</div>
 				<div class="description">This port knocking client is based on <a href="https://cipherdyne.org/fwknop/" target="_blank">fwknop</a>. For more information read their <a href="https://cipherdyne.org/fwknop/docs/" target="_blank">documentation</a>.
 				</div>
 
-				<div class="noticeHeader"><img src="static/images/notice.png" align="middle" border="0" alt="notice" title="notice" />&nbsp;Return message</div>
+				<div class="noticeHeader"><img src="static/images/notice.png" alt="notice" title="notice">&nbsp;Return message</div>
 				<div class="description">It is important to understand, that even if the client send out a correct knock and returns success, you cannot be sure to have an open port. This is based on the fact, that the knocking daemon doesn\'t return anything. So the client is unable to tell, if the request did, what you wanted it to do.
 				</div>
 

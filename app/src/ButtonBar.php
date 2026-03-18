@@ -36,6 +36,8 @@ class ButtonBar
     ##################################################
     /**
      * Button list
+     *
+     * @var array<int, array{key: string, type: string, url: string, target: string|null, attributes: array<string, string|null>}>
      */
     protected array $_buttons = [];
 

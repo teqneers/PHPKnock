@@ -76,7 +76,7 @@ class FormTest extends TestCase
         $this->assertSame('Smith', $values['last']);
     }
 
-    public function testHtmlFormBodyPutsHiddenFieldsBeforeTable(): void
+    public function testHtmlFormBodyPutsHiddenFieldsBeforeFormFields(): void
     {
         $form = new Form('test');
         $form->factory('Text', 'name', 'Name')->setValue('Alice');
@@ -84,21 +84,21 @@ class FormTest extends TestCase
 
         $html = $form->htmlFormBody();
 
-        // hidden input must appear before the <table>
-        $this->assertLessThan(strpos($html, '<table'), strpos($html, 'type="hidden"'));
+        // hidden input must appear before the form-fields div
+        $this->assertLessThan(strpos($html, 'form-fields'), strpos($html, 'type="hidden"'));
     }
 
-    public function testHtmlFormBodyDoesNotPutHiddenInsideTable(): void
+    public function testHtmlFormBodyDoesNotPutHiddenInsideFormFields(): void
     {
         $form = new Form('test');
         $form->factory('Hidden', 'token')->setValue('abc');
 
         $html = $form->htmlFormBody();
 
-        // The hidden input should not be between <tbody> tags
-        $tbodyStart = strpos($html, '<tbody>');
-        $hiddenPos  = strpos($html, 'type="hidden"');
-        $this->assertLessThan($tbodyStart, $hiddenPos);
+        // The hidden input should not be inside the form-fields div
+        $formFieldsStart = strpos($html, 'form-fields');
+        $hiddenPos       = strpos($html, 'type="hidden"');
+        $this->assertLessThan($formFieldsStart, $hiddenPos);
     }
 
     public function testHtmlFormHeaderContainsFormTag(): void
