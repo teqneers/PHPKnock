@@ -10,7 +10,7 @@ variable "IMAGE_TAG_LATEST" {
 
 target "_base" {
     context    = "."
-    dockerfile = "Dockerfile"
+    dockerfile = "docker/Dockerfile"
     platforms  = ["linux/amd64"]
 }
 
@@ -24,7 +24,7 @@ target "default" {
     inherits = ["_base"]
     target   = "production"
     contexts = {
-        app = "../"
+        app = "."
     }
     tags       = ["${IMAGE_NAME}:${IMAGE_TAG}", "${IMAGE_NAME}:${IMAGE_TAG_LATEST}"]
     cache-from = ["${IMAGE_NAME}:${IMAGE_TAG_LATEST}"]
