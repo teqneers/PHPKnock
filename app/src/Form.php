@@ -24,7 +24,6 @@
 namespace PHPKnock;
 
 use PHPKnock\Form\Element;
-use PHPKnock\Form\Element\Hidden;
 
 /**
  * Form Class
@@ -65,7 +64,7 @@ class Form
         'Password' => Element\Password::class,
         'Integer'  => Element\Integer::class,
         'Dropdown' => Element\Dropdown::class,
-        'Hidden'   => Hidden::class,
+        'Hidden'   => Element\Hidden::class,
     ];
 
 
@@ -262,7 +261,7 @@ class Form
         // may crash if hidden fields are displayed between
         // table rows).
         foreach ($elementList as $key => $elementItem) {
-            if ($elementItem instanceof Hidden) {
+            if ($elementItem instanceof Element\Hidden) {
                 $html .= $elementItem->htmlFormRow();
                 unset($elementList[$key]);
             }

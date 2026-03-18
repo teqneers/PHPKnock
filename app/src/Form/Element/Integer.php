@@ -96,12 +96,12 @@ class Integer extends Element
         $floatValue = (float)$this->value();
 
         // check minimum limit
-        if (!$this->isEmpty() && $this->minimum() !== null && $floatValue < $this->minimum()) {
+        if ($this->minimum() !== null && $floatValue < $this->minimum()) {
             $this->setError('MIN EXCEEDED');
         }
 
         // check maximum limit
-        if (!$this->isEmpty() && $this->maximum() !== null && $floatValue > $this->maximum()) {
+        if ($this->maximum() !== null && $floatValue > $this->maximum()) {
             $this->setError('MAX EXCEEDED');
         }
 
@@ -112,8 +112,6 @@ class Integer extends Element
 
     /**
      * Returns true if element's value is empty
-     *
-     * @return mixed
      */
     public function isEmpty(): bool
     {

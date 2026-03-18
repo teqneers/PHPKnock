@@ -58,16 +58,12 @@ class Element
 
     /**
      * Contains the value itself
-     *
-     * @var        string
      */
     protected mixed $_value = null;
 
 
     /**
      * Defines a default value
-     *
-     * @var        string
      */
     protected mixed $_default = null;
 
@@ -231,8 +227,6 @@ class Element
 
     /**
      * Returns true if element's value is empty
-     *
-     * @return mixed
      */
     public function isEmpty(): bool
     {
@@ -424,7 +418,7 @@ class Element
 
 
     /**
-     * @return string        Default value
+     * @return mixed        Default value
      * @see    setDefaultValue()
      */
     public function defaultValue()

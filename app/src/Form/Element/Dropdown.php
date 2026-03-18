@@ -326,7 +326,7 @@ class Dropdown extends Element
 
 
     /**
-     * @return integer     Size of dropdown
+     * @return int     Size of dropdown
      */
     public function size(): int
     {
@@ -334,10 +334,10 @@ class Dropdown extends Element
     }
 
     /**
-     * Defines number of dropdown rows.
+     * Defines the number of dropdown rows.
      *
-     * @param  integer  $newValue  Size of dropdown
-     * @return Dropdown            Return $this for fluent interface (method chaining)
+     * @param  int  $newValue  Size of dropdown
+     * @return Dropdown      Return $this for fluent interface (method chaining)
      * @see    size()
      * @see    setMaximumSize()
      */
@@ -356,7 +356,7 @@ class Dropdown extends Element
     }
 
     /**
-     * @return integer|null        Maximum size of dropdown
+     * @return int|null        Maximum size of dropdown
      * @see    size()
      * @see    setMaximumSize()
      */
@@ -368,8 +368,8 @@ class Dropdown extends Element
     /**
      * Defines number of maximum dropdown rows.
      *
-     * @param  integer  $newValue  Maximum size of dropdown
-     * @return Dropdown            Return $this for fluent interface (method chaining)
+     * @param  int  $newValue  Maximum size of dropdown
+     * @return Dropdown      Return $this for fluent interface (method chaining)
      * @see    maximumSize()
      * @see    setSize()
      */
