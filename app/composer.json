@@ -1,6 +1,7 @@
 {
     "name": "teqneers/phpknock",
     "description": "Web frontend for fwknop port knocking / Single Packet Authorization",
+    "version": "0.3",
     "license": "MIT",
     "require": {
         "php": ">=8.1"

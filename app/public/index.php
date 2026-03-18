@@ -104,7 +104,8 @@ if ($USE_HTTPS_ONLY && (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on')
 // convert variables into constans in order to have them globally
 // available and to increase security
 const PRODUCT_NAME    = 'PHPKnock';
-const PRODUCT_VERSION = '0.3';
+$composerJson = json_decode(file_get_contents($PATH_FS_APPLICATION . '/composer.json'), true);
+define('PRODUCT_VERSION', $composerJson['version'] ?? 'unknown');
 
 define('PATH_FS_APPLICATION', $PATH_FS_APPLICATION);
 define('PATH_FS_TMP', $PATH_FS_TMP);
