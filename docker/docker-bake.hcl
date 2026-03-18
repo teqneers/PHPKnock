@@ -9,8 +9,8 @@ variable "IMAGE_TAG_LATEST" {
 }
 
 target "_base" {
-    context    = "."
-    dockerfile = "docker/Dockerfile"
+    context    = "docker"
+    dockerfile = "Dockerfile"
     platforms  = ["linux/amd64"]
 }
 
