@@ -15,9 +15,12 @@ services:
       #PHPKNOCK_DESTINATION: 10.0.0.1       # single fixed destination
       #PHPKNOCK_DESTINATION: '{"10.0.0.1":"prod","10.0.0.2":"dev"}'  # dropdown
       #PHPKNOCK_ERRORS_VERBOSE: "false"
+      #PHPKNOCK_ERRORS_LOG: /web/log/error.log       # path to error log (default: /web/log/error.log)
+      #PHPKNOCK_AUDIT_LOG: /web/log/audit.log        # path to audit log (default: /web/log/audit.log)
       #PHPKNOCK_RATE_LIMIT: "10"            # max knock attempts per window (default: 10)
       #PHPKNOCK_RATE_WINDOW: "60"           # rate limit window in seconds (default: 60)
     volumes:
       - ../app:/web/app:ro
+      - ../log:/web/log
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent

@@ -42,12 +42,14 @@ const CLI_CALL = (PHP_SAPI === 'cli');
 // basic path settings
 $PATH_FS_APPLICATION = dirname(__DIR__);
 $PATH_FS_TMP         = ($v = getenv('PHPKNOCK_PATH_FS_TMP')) !== false ? $v : $PATH_FS_APPLICATION . '/tmp';
+$PATH_FS_LOG         = ($v = getenv('PHPKNOCK_PATH_FS_LOG')) !== false ? $v : dirname($PATH_FS_APPLICATION) . '/log';
 $PATH_APPLICATION    = ($v = getenv('PHPKNOCK_PATH_APPLICATION')) !== false ? $v : '/knock';
 $USE_HTTPS_ONLY      = ($v = getenv('PHPKNOCK_USE_HTTPS_ONLY')) !== false ?
     filter_var($v, FILTER_VALIDATE_BOOLEAN) : false;
 $ERRORS_VERBOSE      = ($v = getenv('PHPKNOCK_ERRORS_VERBOSE')) !== false ?
     filter_var($v, FILTER_VALIDATE_BOOLEAN) : false;
-$ERRORS_LOG          = ($v = getenv('PHPKNOCK_ERRORS_LOG')) !== false ? $v : null;
+$ERRORS_LOG          = ($v = getenv('PHPKNOCK_ERRORS_LOG')) !== false ? $v : $PATH_FS_LOG . '/error.log';
+$AUDIT_LOG           = ($v = getenv('PHPKNOCK_AUDIT_LOG'))  !== false ? $v : $PATH_FS_LOG . '/audit.log';
 $ENCRYPTION_KEY      = ($v = getenv('PHPKNOCK_ENCRYPTION_KEY')) !== false ? $v : null;
 $FWKNOP_CLI          = ($v = getenv('PHPKNOCK_FWKNOP_CLI')) !== false ? $v : '/usr/bin/fwknop';
 $SERVER_PORT         = ($v = getenv('PHPKNOCK_SERVER_PORT')) !== false ? (int)$v : 62201;
@@ -252,6 +254,7 @@ $knockService = new KnockService(
     tmpPath: PATH_FS_TMP,
     passwordFilePath: PATH_FS_PASSWORD,
     verbose: $ERRORS_VERBOSE,
+    auditLogPath: $AUDIT_LOG,
 );
 
 if (!$error && $form->element('doKnock')->value() === '1') {
@@ -286,7 +289,15 @@ if (!$error && $form->element('doKnock')->value() === '1' && $form->validate()) 
     $hosts = KnockService::resolveHosts($DESTINATION, $formValue);
 
     foreach ($hosts as $target) {
-        $knockService->execute($target, $encryptionKey, $execute, $message, CHARSET);
+        $knockService->execute(
+            $target,
+            $encryptionKey,
+            $execute,
+            $message,
+            CHARSET,
+            $_SERVER['REMOTE_ADDR'] ?? '',
+            $form->element('allowIp')->dbValue(),
+        );
     }
 }
 

@@ -37,7 +37,29 @@ class KnockService
         private readonly string $tmpPath,
         private readonly string $passwordFilePath,
         private readonly bool $verbose = false,
+        private readonly ?string $auditLogPath = null,
     ) {
+    }
+
+    /**
+     * Appends an entry to the audit log file (if configured).
+     *
+     * Format: ISO-8601 timestamp, remote IP, allow IP, destination, result.
+     */
+    public function auditLog(string $remoteIp, string $allowIp, string $destination, string $result): void
+    {
+        if ($this->auditLogPath === null) {
+            return;
+        }
+        $line = sprintf(
+            "[%s] remote=%s allow=%s dst=%s result=%s\n",
+            date('c'),
+            $remoteIp,
+            $allowIp,
+            $destination,
+            $result,
+        );
+        @file_put_contents($this->auditLogPath, $line, FILE_APPEND | LOCK_EX);
     }
 
     /**
@@ -222,11 +244,14 @@ class KnockService
         array $baseCommand,
         Message $message,
         string $charset = 'UTF-8',
+        string $sourceIp = '',
+        string $allowIp = '',
     ): void {
         if (!self::isValidHost($target)) {
             $message->addError(
                 'Invalid destination: "' . htmlspecialchars($target, ENT_QUOTES, $charset) . '".'
             );
+            $this->auditLog($sourceIp, $allowIp, $target, 'invalid');
             return;
         }
 
@@ -267,6 +292,7 @@ class KnockService
                         'Knock send successfully to "' . $target
                         . '". With correct settings, you should be able to access the server for a limited time now.'
                     );
+                    $this->auditLog($sourceIp, $allowIp, $target, 'success');
                 } else {
                     if (!empty($output) && !empty($error)) {
                         $output .= "\n$error";
@@ -279,6 +305,7 @@ class KnockService
                             htmlspecialchars($output, ENT_QUOTES, $charset) . '".'
                         )
                     );
+                    $this->auditLog($sourceIp, $allowIp, $target, 'fail');
                 }
 
                 if ($this->verbose) {

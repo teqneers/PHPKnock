@@ -6,10 +6,11 @@ RUN apt-get update \
 
 ENV PHPKNOCK_FWKNOP_CLI=/usr/bin/fwknop \
     PHPKNOCK_PATH_FS_TMP=/web/tmp \
+    PHPKNOCK_PATH_FS_LOG=/web/log \
     PHPKNOCK_PATH_APPLICATION=/
 
 COPY Caddyfile /etc/caddy/Caddyfile
-RUN mkdir -p /web/tmp
+RUN mkdir -p /web/tmp /web/log
 
 WORKDIR /web
 

@@ -21,6 +21,7 @@ Features
 - **CSRF protection** — synchronizer token validated on every form submission
 - **Per-IP rate limiting** — configurable attempt limit and time window to prevent abuse
 - **Destination validation** — user-supplied hosts are validated as a proper IP address or RFC 1123 hostname before being passed to fwknop
+- **Audit log** — every knock attempt (timestamp, source IP, destination, success/fail) is recorded to `log/audit.log` by default
 - **Encryption key handling** — key is written to a temp file (`chmod 0600`) and passed to fwknop via `-G`; never appears on the command line
 - **Docker / FrankenPHP support** — zero-config container deployment; all settings via environment variables
 - **No build tools or Composer required** for production — plain PHP, no framework
@@ -59,6 +60,8 @@ No config file is required. All settings are controlled via environment variable
 | `PHPKNOCK_ENCRYPTION_KEY` | _(none)_ | Fixed encryption key; omit to let the user enter it in the browser |
 | `PHPKNOCK_DESTINATION` | _(none)_ | Fixed destination IP/hostname, a semicolon-separated list for multiple hosts, or a JSON object (`{"10.0.0.1":"prod","10.0.0.2":"dev"}`) for a dropdown; omit to show a free-text input |
 | `PHPKNOCK_ERRORS_VERBOSE` | `false` | Show fwknop command and raw output in the browser |
+| `PHPKNOCK_ERRORS_LOG` | `/web/log/error.log` | Path to error log file |
+| `PHPKNOCK_AUDIT_LOG` | `/web/log/audit.log` | Path to audit log file; set to empty string to disable |
 | `PHPKNOCK_RATE_LIMIT` | `10` | Max knock attempts per IP per window (0 = disabled) |
 | `PHPKNOCK_RATE_WINDOW` | `60` | Rate limit window in seconds |
 
@@ -78,10 +81,10 @@ No config file is required. All settings are controlled via environment variable
    vi app/local_config.php
    ```
 
-4. Make the `tmp/` directory writable by the web server user:
+4. Make the `tmp/` and `log/` directories writable by the web server user:
    ```bash
-   chown www-data:www-data tmp
-   chmod 770 tmp
+   chown www-data:www-data tmp log
+   chmod 770 tmp log
    ```
 
 5. Open `https://your-domain.com/phpknock/` in a browser.

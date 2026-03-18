@@ -124,17 +124,31 @@ $RATE_WINDOW = 60;
 
 
 #############################################################################
+# AUDIT LOG
+#############################################################################
+/**
+ * Path to the audit log file.
+ *
+ * Each knock attempt is recorded with a timestamp, source IP, destination,
+ * and result (success, fail, or invalid). The file must be writable by the
+ * web server user. Set to null to disable audit logging.
+ *
+ * Default: log/audit.log (relative to project root)
+ */
+$AUDIT_LOG = dirname(__DIR__) . '/log/audit.log';
+
+
+#############################################################################
 # DEBUGGING AND ERROR CONFIGURATION
 #############################################################################
 /**
  * Path to the error log file.
  *
- * The file must be writable by the web server user. It will not be created
- * automatically — create it yourself before enabling logging.
+ * The file must be writable by the web server user.
  *
- * Default: error.log in the app/ directory
+ * Default: log/error.log (relative to project root)
  */
-$ERRORS_LOG = __DIR__ . '/error.log';
+$ERRORS_LOG = dirname(__DIR__) . '/log/error.log';
 
 
 /**
