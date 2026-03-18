@@ -32,8 +32,7 @@ jobs:
 
       - uses: docker/bake-action@v6
         with:
-          workdir: docker
-          files: docker-bake.hcl
+          files: docker/docker-bake.hcl
           targets: default
           push: true
           set: |
