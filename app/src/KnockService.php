@@ -32,13 +32,25 @@ namespace PHPKnock;
  */
 class KnockService
 {
+    public const VALID_HMAC_DIGEST_TYPES = ['md5', 'sha1', 'sha256', 'sha384', 'sha512'];
+
     public function __construct(
         private readonly string $fwknopCli,
         private readonly string $tmpPath,
         private readonly string $passwordFilePath,
         private readonly bool $verbose = false,
         private readonly ?string $auditLogPath = null,
+        private readonly string $encryptionMode = 'rijndael',
+        private readonly ?string $hmacDigestType = null,
+        private readonly ?string $gpgRecipientKey = null,
+        private readonly ?string $gpgSignerKey = null,
+        private readonly ?string $gpgHomeDir = null,
     ) {
+    }
+
+    public static function isValidHmacDigestType(string $type): bool
+    {
+        return in_array($type, self::VALID_HMAC_DIGEST_TYPES, true);
     }
 
     /**
@@ -222,6 +234,22 @@ class KnockService
 
         $execute['a'] = '-a ' . escapeshellarg(escapeshellcmd($allowIp));
 
+        if ($this->hmacDigestType !== null) {
+            $execute['hmac-digest-type'] = '--hmac-digest-type ' . escapeshellarg($this->hmacDigestType);
+        }
+
+        if ($this->encryptionMode === 'gpg') {
+            if ($this->gpgRecipientKey !== null) {
+                $execute['gpg-recipient-key'] = '--gpg-recipient-key ' . escapeshellarg($this->gpgRecipientKey);
+            }
+            if ($this->gpgSignerKey !== null) {
+                $execute['gpg-signer-key'] = '--gpg-signer-key ' . escapeshellarg($this->gpgSignerKey);
+            }
+            if ($this->gpgHomeDir !== null) {
+                $execute['gpg-home-dir'] = '--gpg-home-dir ' . escapeshellarg($this->gpgHomeDir);
+            }
+        }
+
         return $execute;
     }
 
@@ -246,6 +274,7 @@ class KnockService
         string $charset = 'UTF-8',
         string $sourceIp = '',
         string $allowIp = '',
+        ?string $hmacKey = null,
     ): void {
         if (!self::isValidHost($target)) {
             $message->addError(
@@ -255,7 +284,11 @@ class KnockService
             return;
         }
 
-        file_put_contents($this->passwordFilePath, $target . ':' . $encryptionKey);
+        $passContent = $target . ':' . $encryptionKey;
+        if ($hmacKey !== null && $this->encryptionMode === 'rijndael') {
+            $passContent .= ':' . $hmacKey;
+        }
+        file_put_contents($this->passwordFilePath, $passContent);
         chmod($this->passwordFilePath, 0600);
 
         try {
@@ -309,9 +342,13 @@ class KnockService
                 }
 
                 if ($this->verbose) {
+                    $sanitizedCmd = str_replace($encryptionKey, '****', $cmd);
+                    if ($hmacKey !== null) {
+                        $sanitizedCmd = str_replace($hmacKey, '****', $sanitizedCmd);
+                    }
                     $message->addMessage(
                         'Command:<br />' . htmlspecialchars(
-                            str_replace($encryptionKey, '****', $cmd),
+                            $sanitizedCmd,
                             ENT_QUOTES,
                             $charset
                         )

@@ -19,6 +19,13 @@ services:
       #PHPKNOCK_AUDIT_LOG: /web/log/audit.log        # path to audit log (default: /web/log/audit.log)
       #PHPKNOCK_RATE_LIMIT: "10"            # max knock attempts per window (default: 10)
       #PHPKNOCK_RATE_WINDOW: "60"           # rate limit window in seconds (default: 60)
+      #PHPKNOCK_ENCRYPTION_MODE: rijndael   # 'rijndael' (default) or 'gpg'
+      #PHPKNOCK_HMAC_ENABLED: "false"       # enable HMAC authentication (Rijndael only)
+      #PHPKNOCK_HMAC_KEY: secret            # fixed HMAC key; omit to prompt user in browser
+      #PHPKNOCK_HMAC_DIGEST_TYPE: sha256    # md5, sha1, sha256 (default), sha384, sha512
+      #PHPKNOCK_GPG_RECIPIENT_KEY: ABCD1234 # server's GPG key ID (required for GPG mode)
+      #PHPKNOCK_GPG_SIGNER_KEY: EFGH5678   # client's GPG key ID (required for GPG mode)
+      #PHPKNOCK_GPG_HOME_DIR: /path/.gnupg  # GPG keyring path; omit for system default
     volumes:
       - ../app:/web/app:ro
       - ../log:/web/log

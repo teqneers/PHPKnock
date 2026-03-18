@@ -16,11 +16,13 @@ class KnockServiceTest extends TestCase
 
     protected function tearDown(): void
     {
-        // Clean up tmp files
-        $files = glob($this->tmpDir . '/*');
+        // Clean up tmp files (including hidden files like .fwknop.pass)
+        $files = glob($this->tmpDir . '/{,.}*', GLOB_BRACE);
         if ($files !== false) {
             foreach ($files as $file) {
-                unlink($file);
+                if (is_file($file)) {
+                    unlink($file);
+                }
             }
         }
         if (is_dir($this->tmpDir)) {
@@ -272,5 +274,166 @@ class KnockServiceTest extends TestCase
         $this->assertTrue($message->hasErrors());
         $errors = array_values($message->errors());
         $this->assertStringContainsString('Unable to execute fwknop', $errors[0]);
+    }
+
+    // ── HMAC digest type validation ─────────────────────────────
+
+    public function testIsValidHmacDigestTypeAcceptsValid(): void
+    {
+        foreach (['md5', 'sha1', 'sha256', 'sha384', 'sha512'] as $type) {
+            $this->assertTrue(KnockService::isValidHmacDigestType($type), "Expected '$type' to be valid");
+        }
+    }
+
+    public function testIsValidHmacDigestTypeRejectsInvalid(): void
+    {
+        $this->assertFalse(KnockService::isValidHmacDigestType(''));
+        $this->assertFalse(KnockService::isValidHmacDigestType('SHA256'));
+        $this->assertFalse(KnockService::isValidHmacDigestType('sha-256'));
+        $this->assertFalse(KnockService::isValidHmacDigestType('aes'));
+    }
+
+    // ── buildCommand with HMAC ──────────────────────────────────
+
+    public function testBuildCommandWithHmacDigestType(): void
+    {
+        $svc = new KnockService(
+            '/usr/bin/fwknop', $this->tmpDir, $this->tmpDir . '/.pass',
+            hmacDigestType: 'sha256',
+        );
+
+        $cmd = $svc->buildCommand('192.168.1.1', null, null, null, null);
+
+        $this->assertArrayHasKey('hmac-digest-type', $cmd);
+        $this->assertStringContainsString('--hmac-digest-type', $cmd['hmac-digest-type']);
+        $this->assertStringContainsString('sha256', $cmd['hmac-digest-type']);
+    }
+
+    public function testBuildCommandWithoutHmacOmitsDigestType(): void
+    {
+        $svc = new KnockService('/usr/bin/fwknop', $this->tmpDir, $this->tmpDir . '/.pass');
+
+        $cmd = $svc->buildCommand('192.168.1.1', null, null, null, null);
+
+        $this->assertArrayNotHasKey('hmac-digest-type', $cmd);
+    }
+
+    // ── buildCommand with GPG ───────────────────────────────────
+
+    public function testBuildCommandGpgMode(): void
+    {
+        $svc = new KnockService(
+            '/usr/bin/fwknop', $this->tmpDir, $this->tmpDir . '/.pass',
+            encryptionMode: 'gpg',
+            gpgRecipientKey: 'ABCD1234',
+            gpgSignerKey: 'EFGH5678',
+        );
+
+        $cmd = $svc->buildCommand('192.168.1.1', null, null, null, null);
+
+        $this->assertArrayHasKey('gpg-recipient-key', $cmd);
+        $this->assertStringContainsString('--gpg-recipient-key', $cmd['gpg-recipient-key']);
+        $this->assertStringContainsString('ABCD1234', $cmd['gpg-recipient-key']);
+        $this->assertArrayHasKey('gpg-signer-key', $cmd);
+        $this->assertStringContainsString('--gpg-signer-key', $cmd['gpg-signer-key']);
+        $this->assertStringContainsString('EFGH5678', $cmd['gpg-signer-key']);
+    }
+
+    public function testBuildCommandGpgModeWithHomeDir(): void
+    {
+        $svc = new KnockService(
+            '/usr/bin/fwknop', $this->tmpDir, $this->tmpDir . '/.pass',
+            encryptionMode: 'gpg',
+            gpgRecipientKey: 'ABCD1234',
+            gpgSignerKey: 'EFGH5678',
+            gpgHomeDir: '/home/user/.gnupg',
+        );
+
+        $cmd = $svc->buildCommand('192.168.1.1', null, null, null, null);
+
+        $this->assertArrayHasKey('gpg-home-dir', $cmd);
+        $this->assertStringContainsString('--gpg-home-dir', $cmd['gpg-home-dir']);
+        $this->assertStringContainsString('/home/user/.gnupg', $cmd['gpg-home-dir']);
+    }
+
+    public function testBuildCommandGpgModeWithoutHomeDir(): void
+    {
+        $svc = new KnockService(
+            '/usr/bin/fwknop', $this->tmpDir, $this->tmpDir . '/.pass',
+            encryptionMode: 'gpg',
+            gpgRecipientKey: 'ABCD1234',
+            gpgSignerKey: 'EFGH5678',
+        );
+
+        $cmd = $svc->buildCommand('192.168.1.1', null, null, null, null);
+
+        $this->assertArrayNotHasKey('gpg-home-dir', $cmd);
+    }
+
+    // ── execute password file format ────────────────────────────
+
+    public function testExecutePasswordFileFormatWithHmac(): void
+    {
+        $passFile = $this->tmpDir . '/.fwknop.pass';
+        $copyFile = $this->tmpDir . '/.pass_copy';
+
+        // Create a shell script that copies the pass file before it's deleted
+        $script = $this->tmpDir . '/copy_pass.sh';
+        file_put_contents($script, "#!/bin/sh\ncp '$passFile' '$copyFile'\n");
+        chmod($script, 0755);
+
+        $svc = new KnockService(
+            $script, $this->tmpDir, $passFile,
+            encryptionMode: 'rijndael',
+            hmacDigestType: 'sha256',
+        );
+        $message = new Message();
+
+        $svc->execute('127.0.0.1', 'mykey', [$script], $message, hmacKey: 'myhmac');
+
+        $this->assertFileExists($copyFile);
+        $this->assertSame('127.0.0.1:mykey:myhmac', file_get_contents($copyFile));
+    }
+
+    public function testExecutePasswordFileFormatWithoutHmac(): void
+    {
+        $passFile = $this->tmpDir . '/.fwknop.pass';
+        $copyFile = $this->tmpDir . '/.pass_copy';
+
+        $script = $this->tmpDir . '/copy_pass.sh';
+        file_put_contents($script, "#!/bin/sh\ncp '$passFile' '$copyFile'\n");
+        chmod($script, 0755);
+
+        $svc = new KnockService($script, $this->tmpDir, $passFile);
+        $message = new Message();
+
+        $svc->execute('127.0.0.1', 'mykey', [$script], $message);
+
+        $this->assertFileExists($copyFile);
+        $this->assertSame('127.0.0.1:mykey', file_get_contents($copyFile));
+    }
+
+    public function testExecuteGpgModeIgnoresHmacKey(): void
+    {
+        $passFile = $this->tmpDir . '/.fwknop.pass';
+        $copyFile = $this->tmpDir . '/.pass_copy';
+
+        $script = $this->tmpDir . '/copy_pass.sh';
+        file_put_contents($script, "#!/bin/sh\ncp '$passFile' '$copyFile'\n");
+        chmod($script, 0755);
+
+        $svc = new KnockService(
+            $script, $this->tmpDir, $passFile,
+            encryptionMode: 'gpg',
+            gpgRecipientKey: 'ABCD1234',
+            gpgSignerKey: 'EFGH5678',
+        );
+        $message = new Message();
+
+        // Even with hmacKey passed, GPG mode writes 2-field format
+        $svc->execute('127.0.0.1', 'mykey', [$script], $message, hmacKey: 'myhmac');
+
+        $this->assertFileExists($copyFile);
+        $this->assertSame('127.0.0.1:mykey', file_get_contents($copyFile));
     }
 }

@@ -60,6 +60,84 @@ $FWKNOP_CLI = '/usr/bin/fwknop';
 $ENCRYPTION_KEY = null;
 
 
+#############################################################################
+# ENCRYPTION MODE
+#############################################################################
+/**
+ * Encryption mode for SPA packets.
+ *
+ * 'rijndael' — AES symmetric encryption (default, classic fwknop mode).
+ * 'gpg'      — GPG asymmetric encryption.
+ *
+ * Default: 'rijndael'
+ */
+$ENCRYPTION_MODE = 'rijndael';
+
+
+#############################################################################
+# HMAC AUTHENTICATION (Rijndael mode only)
+#############################################################################
+/**
+ * Enable HMAC authentication for SPA packets.
+ *
+ * When true, an HMAC key is included in the password file sent to fwknop.
+ * Only applies when $ENCRYPTION_MODE is 'rijndael'.
+ *
+ * Default: false
+ */
+$HMAC_ENABLED = false;
+
+/**
+ * Fixed HMAC key.
+ *
+ * Set to null to prompt the user to enter the HMAC key in the browser.
+ * Set to a string to use a fixed key (the field will not be shown).
+ *
+ * Default: null
+ */
+$HMAC_KEY = null;
+
+/**
+ * HMAC digest algorithm.
+ *
+ * Valid values: 'md5', 'sha1', 'sha256', 'sha384', 'sha512'.
+ *
+ * Default: 'sha256'
+ */
+$HMAC_DIGEST_TYPE = 'sha256';
+
+
+#############################################################################
+# GPG ENCRYPTION
+#############################################################################
+/**
+ * GPG recipient key ID (the server's public key).
+ *
+ * Required when $ENCRYPTION_MODE is 'gpg'.
+ *
+ * Default: null
+ */
+$GPG_RECIPIENT_KEY = null;
+
+/**
+ * GPG signer key ID (the client's key used to sign the SPA packet).
+ *
+ * Required when $ENCRYPTION_MODE is 'gpg'.
+ *
+ * Default: null
+ */
+$GPG_SIGNER_KEY = null;
+
+/**
+ * Path to the GPG keyring directory.
+ *
+ * Set to null to use the system default GPG home directory.
+ *
+ * Default: null
+ */
+$GPG_HOME_DIR = null;
+
+
 /**
  * Destination server(s) to knock.
  *

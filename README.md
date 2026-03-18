@@ -22,6 +22,8 @@ Features
 - **Per-IP rate limiting** — configurable attempt limit and time window to prevent abuse
 - **Destination validation** — user-supplied hosts are validated as a proper IP address or RFC 1123 hostname before being passed to fwknop
 - **Audit log** — every knock attempt (timestamp, source IP, destination, success/fail) is recorded to `log/audit.log` by default
+- **HMAC authentication** — optional HMAC key support for Rijndael mode with configurable digest algorithm
+- **GPG encryption mode** — asymmetric encryption via GPG keys as an alternative to Rijndael
 - **Encryption key handling** — key is written to a temp file (`chmod 0600`) and passed to fwknop via `-G`; never appears on the command line
 - **Docker / FrankenPHP support** — zero-config container deployment; all settings via environment variables
 - **No build tools or Composer required** for production — plain PHP, no framework
@@ -64,6 +66,13 @@ No config file is required. All settings are controlled via environment variable
 | `PHPKNOCK_AUDIT_LOG` | `/web/log/audit.log` | Path to audit log file; set to empty string to disable |
 | `PHPKNOCK_RATE_LIMIT` | `10` | Max knock attempts per IP per window (0 = disabled) |
 | `PHPKNOCK_RATE_WINDOW` | `60` | Rate limit window in seconds |
+| `PHPKNOCK_ENCRYPTION_MODE` | `rijndael` | `rijndael` (AES symmetric) or `gpg` (GPG asymmetric) |
+| `PHPKNOCK_HMAC_ENABLED` | `false` | Enable HMAC authentication (Rijndael mode only) |
+| `PHPKNOCK_HMAC_KEY` | _(none)_ | Fixed HMAC key; omit to let the user enter it in the browser |
+| `PHPKNOCK_HMAC_DIGEST_TYPE` | `sha256` | HMAC digest algorithm: `md5`, `sha1`, `sha256`, `sha384`, `sha512` |
+| `PHPKNOCK_GPG_RECIPIENT_KEY` | _(none)_ | Server's GPG key ID (required for GPG mode) |
+| `PHPKNOCK_GPG_SIGNER_KEY` | _(none)_ | Client's GPG key ID (required for GPG mode) |
+| `PHPKNOCK_GPG_HOME_DIR` | _(none)_ | GPG keyring path; omit to use system default |
 
 ### Option B — Traditional web server
 

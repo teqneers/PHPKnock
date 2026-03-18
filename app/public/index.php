@@ -64,6 +64,14 @@ if (($v = getenv('PHPKNOCK_DESTINATION')) !== false) {
 }
 $RATE_LIMIT          = ($v = getenv('PHPKNOCK_RATE_LIMIT'))  !== false ? (int)$v : 10;
 $RATE_WINDOW         = ($v = getenv('PHPKNOCK_RATE_WINDOW')) !== false ? (int)$v : 60;
+$ENCRYPTION_MODE     = ($v = getenv('PHPKNOCK_ENCRYPTION_MODE')) !== false ? $v : 'rijndael';
+$HMAC_ENABLED        = ($v = getenv('PHPKNOCK_HMAC_ENABLED')) !== false ?
+    filter_var($v, FILTER_VALIDATE_BOOLEAN) : false;
+$HMAC_KEY            = ($v = getenv('PHPKNOCK_HMAC_KEY')) !== false ? $v : null;
+$HMAC_DIGEST_TYPE    = ($v = getenv('PHPKNOCK_HMAC_DIGEST_TYPE')) !== false ? $v : 'sha256';
+$GPG_RECIPIENT_KEY   = ($v = getenv('PHPKNOCK_GPG_RECIPIENT_KEY')) !== false ? $v : null;
+$GPG_SIGNER_KEY      = ($v = getenv('PHPKNOCK_GPG_SIGNER_KEY')) !== false ? $v : null;
+$GPG_HOME_DIR        = ($v = getenv('PHPKNOCK_GPG_HOME_DIR')) !== false ? $v : null;
 
 // local_config.php is optional — overrides any value set above
 $pathLocalConfig = __DIR__ . '/../local_config.php';
@@ -168,7 +176,8 @@ if (function_exists('pcntl_signal')) {
  */
 function form(): Form
 {
-    global $ACCESS_PORT_LIST, $DESTINATION, $ENCRYPTION_KEY, $SERVER_PORT;
+    global $ACCESS_PORT_LIST, $DESTINATION, $ENCRYPTION_KEY, $SERVER_PORT,
+           $ENCRYPTION_MODE, $HMAC_ENABLED, $HMAC_KEY;
 
     $form = new Form('knock');
 
@@ -199,7 +208,12 @@ function form(): Form
     }
 
     if ($ENCRYPTION_KEY === null) {
-        $form->factory('Password', 'encryptionKey', 'Encryption key');
+        $label = $ENCRYPTION_MODE === 'gpg' ? 'GPG passphrase' : 'Encryption key';
+        $form->factory('Password', 'encryptionKey', $label);
+    }
+
+    if ($ENCRYPTION_MODE === 'rijndael' && $HMAC_ENABLED && $HMAC_KEY === null) {
+        $form->factory('Password', 'hmacKey', 'HMAC key');
     }
 
     $form->factory('Text', 'allowIp', 'Source IP')
@@ -245,6 +259,23 @@ if (!is_writable(PATH_FS_TMP)) {
     $error = true;
 }
 
+if (!in_array($ENCRYPTION_MODE, ['rijndael', 'gpg'], true)) {
+    $message->addError('Invalid encryption mode "' . htmlspecialchars($ENCRYPTION_MODE, ENT_QUOTES, CHARSET) . '". Must be "rijndael" or "gpg".');
+    $error = true;
+}
+
+if ($ENCRYPTION_MODE === 'gpg') {
+    if ($GPG_RECIPIENT_KEY === null || $GPG_SIGNER_KEY === null) {
+        $message->addError('GPG mode requires both $GPG_RECIPIENT_KEY and $GPG_SIGNER_KEY to be set.');
+        $error = true;
+    }
+}
+
+if ($HMAC_ENABLED && !KnockService::isValidHmacDigestType($HMAC_DIGEST_TYPE)) {
+    $message->addError('Invalid HMAC digest type "' . htmlspecialchars($HMAC_DIGEST_TYPE, ENT_QUOTES, CHARSET) . '". Valid types: ' . implode(', ', KnockService::VALID_HMAC_DIGEST_TYPES) . '.');
+    $error = true;
+}
+
 
 #############################################################################
 ###	ACTION
@@ -255,6 +286,11 @@ $knockService = new KnockService(
     passwordFilePath: PATH_FS_PASSWORD,
     verbose: $ERRORS_VERBOSE,
     auditLogPath: $AUDIT_LOG,
+    encryptionMode: $ENCRYPTION_MODE,
+    hmacDigestType: ($HMAC_ENABLED && $ENCRYPTION_MODE === 'rijndael') ? $HMAC_DIGEST_TYPE : null,
+    gpgRecipientKey: $GPG_RECIPIENT_KEY,
+    gpgSignerKey: $GPG_SIGNER_KEY,
+    gpgHomeDir: $GPG_HOME_DIR,
 );
 
 if (!$error && $form->element('doKnock')->value() === '1') {
@@ -288,6 +324,11 @@ if (!$error && $form->element('doKnock')->value() === '1' && $form->validate()) 
     $formValue = $form->element('destination')?->dbValue();
     $hosts = KnockService::resolveHosts($DESTINATION, $formValue);
 
+    $hmacKey = null;
+    if ($HMAC_ENABLED && $ENCRYPTION_MODE === 'rijndael') {
+        $hmacKey = $HMAC_KEY ?? $form->element('hmacKey')?->dbValue();
+    }
+
     foreach ($hosts as $target) {
         $knockService->execute(
             $target,
@@ -297,6 +338,7 @@ if (!$error && $form->element('doKnock')->value() === '1' && $form->validate()) 
             CHARSET,
             $_SERVER['REMOTE_ADDR'] ?? '',
             $form->element('allowIp')->dbValue(),
+            $hmacKey,
         );
     }
 }
