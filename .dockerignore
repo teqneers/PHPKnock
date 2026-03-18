@@ -1,0 +1,6 @@
+.git
+.github
+log/
+app/tmp/
+app/vendor/
+CLAUDE.md

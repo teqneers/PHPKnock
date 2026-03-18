@@ -42,6 +42,17 @@ Installation
 
 ### Option A — Docker (recommended)
 
+#### Pre-built image
+
+Pull the latest image from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/teqneers/phpknock:latest
+docker run -p 80:80 -e PHPKNOCK_SERVER_PORT=62201 ghcr.io/teqneers/phpknock
+```
+
+#### Build from source
+
 No config file is required. All settings are controlled via environment variables set in `docker/compose.yaml`.
 
 1. Edit `docker/compose.yaml` and set the environment variables for your setup (see table below).
@@ -97,6 +108,38 @@ No config file is required. All settings are controlled via environment variable
    ```
 
 5. Open `https://your-domain.com/phpknock/` in a browser.
+
+
+Development
+-----------
+
+### Docker Bake
+
+The project uses [Docker Bake](https://docs.docker.com/build/bake/) to orchestrate image builds. The bake file is at `docker/docker-bake.hcl`. Run all commands from the `docker/` directory.
+
+**Dev image** (no app code baked in — use with volume mounts for live editing):
+```bash
+docker buildx bake dev
+```
+
+**Production image** (app code and Composer dependencies baked in):
+```bash
+docker buildx bake
+```
+
+To override the image tag:
+```bash
+docker buildx bake --set 'default.tags=ghcr.io/teqneers/phpknock:0.3.0'
+```
+
+### Tests and static analysis
+
+```bash
+cd app
+composer install
+./vendor/bin/phpunit
+./vendor/bin/phpstan analyse
+```
 
 
 Contribute

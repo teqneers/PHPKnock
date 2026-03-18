@@ -1,9 +1,11 @@
 ---
 services:
   app:
+    image: ghcr.io/teqneers/phpknock:dev
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
     ports:
       - "80:80"
       - "443:443"
