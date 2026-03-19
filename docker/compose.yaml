@@ -12,6 +12,7 @@ services:
     environment:
       PHPKNOCK_SERVER_PORT: "62201"
       PHPKNOCK_ACCESS_PORT_LIST: tcp/22
+      PHPKNOCK_USE_HTTPS_ONLY: "false"
       #PHPKNOCK_USE_HTTPS_ONLY: "true"
       #PHPKNOCK_ENCRYPTION_KEY: secret      # omit to prompt user in browser
       #PHPKNOCK_DESTINATION: 10.0.0.1       # single fixed destination

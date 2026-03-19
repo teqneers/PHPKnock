@@ -1,9 +1,14 @@
 {
     frankenphp
     order php_server before file_server
+    auto_https off
 }
 
-{$SERVER_NAME:localhost} {
+:443 {
+    root * /web/app/public
+    php_server
+}
+:80 {
     root * /web/app/public
     php_server
 }
