@@ -2,14 +2,21 @@
   <img src="app/public/static/images/phpknock.png" alt="PHPKnock" width="200" />
 </p>
 
-**PHPKnock** is a web frontend for the port-knocking client [fwknop](http://cipherdyne.org/fwknop/). It lets you send a Single Packet Authorization (SPA) or port-knocking request to a remote server directly from a browser, without needing fwknop installed locally.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.1-8892BF.svg)](https://www.php.net/)
+
+**PHPKnock** is a web frontend for the port-knocking client [fwknop](https://cipherdyne.org/fwknop/). It lets you send a Single Packet Authorization (SPA) or port-knocking request to a remote server directly from a browser, without needing fwknop installed locally.
+
+<p style="text-align:center;">
+  <img src="app/docs/screenshot.png" alt="PHPKnock screenshot" width="600" />
+</p>
 
 **Why a web frontend?** It lets you trigger port-knocking from any device with a browser. Typical use cases:
 
 - Install it on an intranet server so staff can open ports on other servers in your network.
 - Install it in your extranet so support staff can send SPA requests from home without installing fwknop on their own machines.
 
-For background reading, see Wikipedia on [port knocking](http://en.wikipedia.org/wiki/Port_knocking) and [Single Packet Authorization](http://en.wikipedia.org/wiki/Single_Packet_Authorization).
+For background reading, see Wikipedia on [port knocking](https://en.wikipedia.org/wiki/Port_knocking) and [Single Packet Authorization](https://en.wikipedia.org/wiki/Single_Packet_Authorization).
 
 
 Features
@@ -32,9 +39,10 @@ Features
 Requirements
 ------------
 
-- PHP >= 8.1
+- PHP >= 8.1 (with `proc_open` enabled)
 - fwknop client 2.x
 - A web server (Apache, Nginx, etc.) **or** Docker
+- Composer (for autoloading, traditional install only)
 
 
 Installation
@@ -93,21 +101,27 @@ No config file is required. All settings are controlled via environment variable
    ```apacheconf
    Alias /phpknock /opt/phpknock/app/public
    ```
-   See [Apache mod_alias](http://httpd.apache.org/docs/2.2/mod/mod_alias.html#alias) for details.
+   See [Apache mod_alias](https://httpd.apache.org/docs/2.4/mod/mod_alias.html#alias) for details.
 
-3. Copy and configure the config file:
+3. Install dependencies:
+   ```bash
+   cd app
+   composer install
+   ```
+
+4. Copy and configure the config file:
    ```bash
    cp app/local_config.php.dist app/local_config.php
    vi app/local_config.php
    ```
 
-4. Make the `tmp/` and `log/` directories writable by the web server user:
+5. Make the `tmp/` and `log/` directories writable by the web server user:
    ```bash
    chown www-data:www-data tmp log
    chmod 770 tmp log
    ```
 
-5. Open `https://your-domain.com/phpknock/` in a browser.
+6. Open `https://your-domain.com/phpknock/` in a browser.
 
 
 Development
