@@ -2,8 +2,11 @@
   <img src="app/public/static/images/phpknock.png" alt="PHPKnock" width="200" />
 </p>
 
+[![CI](https://github.com/teqneers/phpknock/actions/workflows/ci.yml/badge.svg)](https://github.com/teqneers/phpknock/actions/workflows/ci.yml)
+[![Docker](https://github.com/teqneers/phpknock/actions/workflows/docker.yml/badge.svg)](https://github.com/teqneers/phpknock/actions/workflows/docker.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![PHP Version](https://img.shields.io/badge/PHP-%3E%3D%208.1-8892BF.svg)](https://www.php.net/)
+[![PHP](https://img.shields.io/badge/PHP-8.1%20|%208.2%20|%208.3%20|%208.4-8892BF.svg)](https://www.php.net/)
+[![Docker Image](https://img.shields.io/badge/ghcr.io-teqneers%2Fphpknock-blue?logo=docker)](https://ghcr.io/teqneers/phpknock)
 
 **PHPKnock** is a web frontend for the port-knocking client [fwknop](https://cipherdyne.org/fwknop/). It lets you send a Single Packet Authorization (SPA) or port-knocking request to a remote server directly from a browser, without needing fwknop installed locally.
 
