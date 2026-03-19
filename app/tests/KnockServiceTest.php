@@ -92,8 +92,15 @@ class KnockServiceTest extends TestCase
     {
         $config = ['srv1' => 'server1.com', 'srv2' => 'server2.com'];
         $hosts = KnockService::resolveHosts($config, ['srv1']);
-        // String keys go through the else branch, so the key itself is the host
-        $this->assertSame(['server1.com'], $hosts);
+        // String keys are the actual hostnames; values are just display labels
+        $this->assertSame(['srv1'], $hosts);
+    }
+
+    public function testResolveHostsWithDropdownIpKeysAndLabels(): void
+    {
+        $config = ['10.0.0.1' => 'server (prod)', '10.0.0.2' => 'server (dev)'];
+        $hosts = KnockService::resolveHosts($config, ['10.0.0.1', '10.0.0.2']);
+        $this->assertSame(['10.0.0.1', '10.0.0.2'], $hosts);
     }
 
     public function testResolveHostsWithNullConfigFreeText(): void

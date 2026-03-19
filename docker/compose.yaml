@@ -16,7 +16,7 @@ services:
       #PHPKNOCK_USE_HTTPS_ONLY: "true"
       #PHPKNOCK_ENCRYPTION_KEY: secret      # omit to prompt user in browser
       #PHPKNOCK_DESTINATION: 10.0.0.1       # single fixed destination
-      #PHPKNOCK_DESTINATION: '{"10.0.0.1":"prod","10.0.0.2":"dev"}'  # dropdown
+      #PHPKNOCK_DESTINATION: '{"10.0.0.1":"server (prod)","10.0.0.2":"server (dev)"}'  # dropdown
       #PHPKNOCK_ERRORS_VERBOSE: "false"
       #PHPKNOCK_ERRORS_LOG: /web/log/error.log       # path to error log (default: /web/log/error.log)
       #PHPKNOCK_AUDIT_LOG: /web/log/audit.log        # path to audit log (default: /web/log/audit.log)

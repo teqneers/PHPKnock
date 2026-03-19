@@ -123,9 +123,11 @@ class KnockService
                 $keyStr = (string)$key;
                 $keyInt = (int)$key;
                 if ((string)$keyInt === $keyStr && isset($configDestination[$keyInt])) {
+                    // Numeric key: the value is the hostname
                     $hosts[] = $configDestination[$keyInt];
                 } elseif (isset($configDestination[$keyStr])) {
-                    $hosts[] = $configDestination[$keyStr];
+                    // String key: the key itself is the hostname, value is just a label
+                    $hosts[] = $keyStr;
                 } else {
                     $hosts[] = $keyStr;
                 }
