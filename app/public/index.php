@@ -169,6 +169,31 @@ if (function_exists('pcntl_signal')) {
 }
 
 /**
+ * Returns the client's real IP address, checking proxy headers first.
+ */
+function clientIp(): string
+{
+    // X-Forwarded-For may contain a comma-separated list; the first entry is the original client
+    $forwarded = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null;
+    if ($forwarded !== null && $forwarded !== '') {
+        $ip = trim(explode(',', $forwarded)[0]);
+        if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
+            return $ip;
+        }
+    }
+
+    $realIp = $_SERVER['HTTP_X_REAL_IP'] ?? null;
+    if ($realIp !== null && $realIp !== '') {
+        $realIp = trim($realIp);
+        if (filter_var($realIp, FILTER_VALIDATE_IP) !== false) {
+            return $realIp;
+        }
+    }
+
+    return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+}
+
+/**
  * Builds and returns form
  *
  * @return Form        Html Form
@@ -217,7 +242,7 @@ function form(): Form
     }
 
     $form->factory('Text', 'allowIp', 'Source IP')
-         ->setDefaultValue($_SERVER['REMOTE_ADDR'])
+         ->setDefaultValue(clientIp())
          ->setValidRegExp(
              '(^(?P<first>[1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.(?P<second>[1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.(?P<third>[1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.(?P<fourth>[1-9]?\d|1\d\d|2[0-4]\d|25[0-5])$)'
          )
@@ -304,7 +329,7 @@ if (!$error && $form->element('doKnock')->value() === '1') {
     }
 
     // Rate limit check
-    if (!$error && !$knockService->checkRateLimit($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0', $RATE_LIMIT, $RATE_WINDOW)) {
+    if (!$error && !$knockService->checkRateLimit(clientIp(), $RATE_LIMIT, $RATE_WINDOW)) {
         $message->addError('Too many requests. Please wait before trying again.');
         $error = true;
     }
@@ -336,7 +361,7 @@ if (!$error && $form->element('doKnock')->value() === '1' && $form->validate()) 
             $execute,
             $message,
             CHARSET,
-            $_SERVER['REMOTE_ADDR'] ?? '',
+            clientIp(),
             $form->element('allowIp')->dbValue(),
             $hmacKey,
         );
