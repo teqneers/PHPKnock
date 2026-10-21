@@ -13,15 +13,15 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/metadata-action@v5
+      - uses: docker/metadata-action@v6
         id: meta
         with:
           images: ghcr.io/teqneers/phpknock
@@ -30,7 +30,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=ref,event=branch
 
-      - uses: docker/bake-action@v6
+      - uses: docker/bake-action@v7
         with:
           files: docker/docker-bake.hcl
           targets: default

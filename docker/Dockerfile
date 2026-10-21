@@ -1,4 +1,4 @@
-ARG PHP_VERSION=latest-php8.3
+ARG PHP_VERSION=php8.5
 
 # ── base image for dev and prod ──────────────────────────────
 FROM dunglas/frankenphp:${PHP_VERSION} AS baseimage
