@@ -151,6 +151,92 @@ class KnockServiceTest extends TestCase
         $this->assertTrue($svc->checkRateLimit('10.0.0.2', 1, 60));
     }
 
+    public function testResolveHostsIgnoresValuesNotInDropdown(): void
+    {
+        $config = ['10.0.0.1' => 'prod', 'server2.com'];
+        $hosts = KnockService::resolveHosts($config, ['attacker.example.com', '10.0.0.1', '5', '0']);
+        $this->assertSame(['10.0.0.1', 'server2.com'], $hosts);
+    }
+
+    // ── clientIp ─────────────────────────────────────────────────
+
+    public function testClientIpIgnoresProxyHeadersWithoutTrustedProxies(): void
+    {
+        $server = [
+            'REMOTE_ADDR'          => '203.0.113.5',
+            'HTTP_X_FORWARDED_FOR' => '1.2.3.4',
+            'HTTP_X_REAL_IP'       => '5.6.7.8',
+        ];
+        $this->assertSame('203.0.113.5', KnockService::clientIp($server, []));
+    }
+
+    public function testClientIpIgnoresProxyHeadersFromUntrustedPeer(): void
+    {
+        $server = ['REMOTE_ADDR' => '203.0.113.5', 'HTTP_X_FORWARDED_FOR' => '1.2.3.4'];
+        $this->assertSame('203.0.113.5', KnockService::clientIp($server, ['10.0.0.0/8']));
+    }
+
+    public function testClientIpUsesRightmostUntrustedForwardedAddress(): void
+    {
+        // client spoofed "6.6.6.6", the real client 1.2.3.4 was appended by the trusted proxies
+        $server = ['REMOTE_ADDR' => '10.0.0.2', 'HTTP_X_FORWARDED_FOR' => '6.6.6.6, 1.2.3.4, 10.0.0.1'];
+        $this->assertSame('1.2.3.4', KnockService::clientIp($server, ['10.0.0.0/8']));
+    }
+
+    public function testClientIpFallsBackToRealIpHeader(): void
+    {
+        $server = ['REMOTE_ADDR' => '10.0.0.2', 'HTTP_X_REAL_IP' => '1.2.3.4'];
+        $this->assertSame('1.2.3.4', KnockService::clientIp($server, ['10.0.0.2']));
+    }
+
+    public function testClientIpDefaultsWithoutRemoteAddr(): void
+    {
+        $this->assertSame('0.0.0.0', KnockService::clientIp([], []));
+    }
+
+    public function testIsTrustedProxyMatchesIpsAndCidrs(): void
+    {
+        $proxies = ['127.0.0.1', '172.16.0.0/12', '10.1.2.0/23', 'fd00::/8'];
+        $this->assertTrue(KnockService::isTrustedProxy('127.0.0.1', $proxies));
+        $this->assertTrue(KnockService::isTrustedProxy('172.31.255.1', $proxies));
+        $this->assertTrue(KnockService::isTrustedProxy('10.1.3.7', $proxies));
+        $this->assertTrue(KnockService::isTrustedProxy('fd12::1', $proxies));
+        $this->assertFalse(KnockService::isTrustedProxy('127.0.0.2', $proxies));
+        $this->assertFalse(KnockService::isTrustedProxy('172.32.0.1', $proxies));
+        $this->assertFalse(KnockService::isTrustedProxy('10.1.4.1', $proxies));
+        $this->assertFalse(KnockService::isTrustedProxy('fe80::1', $proxies));
+        $this->assertFalse(KnockService::isTrustedProxy('not-an-ip', $proxies));
+    }
+
+    // ── isValidHttpHost ──────────────────────────────────────────
+
+    public function testIsValidHttpHost(): void
+    {
+        $this->assertTrue(KnockService::isValidHttpHost('knock.example.com'));
+        $this->assertTrue(KnockService::isValidHttpHost('knock.example.com:8443'));
+        $this->assertTrue(KnockService::isValidHttpHost('10.0.0.1:80'));
+        $this->assertTrue(KnockService::isValidHttpHost('[::1]:8080'));
+        $this->assertFalse(KnockService::isValidHttpHost('evil.com/path'));
+        $this->assertFalse(KnockService::isValidHttpHost("evil.com\r\nX-Injected: 1"));
+        $this->assertFalse(KnockService::isValidHttpHost('example.com:99999'));
+        $this->assertFalse(KnockService::isValidHttpHost('user@example.com'));
+        $this->assertFalse(KnockService::isValidHttpHost(''));
+    }
+
+    // ── auditLog ─────────────────────────────────────────────────
+
+    public function testAuditLogEscapesControlCharacters(): void
+    {
+        $log = $this->tmpDir . '/audit.log';
+        $svc = new KnockService('/usr/bin/true', $this->tmpDir, $this->tmpDir . '/.pass', auditLogPath: $log);
+
+        $svc->auditLog('1.2.3.4', '1.2.3.4', "evil\n[2026-01-01] remote=forged", 'invalid');
+
+        $lines = file($log);
+        $this->assertCount(1, $lines);
+        $this->assertStringContainsString('dst=evil\n[2026-01-01] remote=forged', $lines[0]);
+    }
+
     // ── buildCommand ─────────────────────────────────────────────
 
     public function testBuildCommandBasic(): void
@@ -160,7 +246,6 @@ class KnockServiceTest extends TestCase
         $cmd = $svc->buildCommand('192.168.1.100', null, null, null, null);
 
         $this->assertSame('/usr/bin/fwknop', $cmd['cli']);
-        $this->assertStringContainsString('-G', $cmd['G']);
         $this->assertStringContainsString('-a', $cmd['a']);
         $this->assertStringContainsString('192.168.1.100', $cmd['a']);
         $this->assertArrayNotHasKey('verbose', $cmd);
@@ -255,6 +340,28 @@ class KnockServiceTest extends TestCase
 
         // Password file should be cleaned up after execution
         $this->assertFileDoesNotExist($passFile);
+        $this->assertSame([], glob($passFile . '*'));
+    }
+
+    public function testExecuteUsesUniquePrivatePasswordFile(): void
+    {
+        $passFile = $this->tmpDir . '/.fwknop.pass';
+        $copyFile = $this->tmpDir . '/.pass_copy';
+        // a stale file at the configured path must not be used or touched
+        file_put_contents($passFile, 'stale');
+
+        $script = $this->tmpDir . '/copy_pass.sh';
+        file_put_contents($script, "#!/bin/sh\necho \"\$2\" > '$copyFile'\n");
+        chmod($script, 0755);
+
+        $svc = new KnockService($script, $this->tmpDir, $passFile);
+        $svc->execute('127.0.0.1', 'mykey', [$script], new Message());
+
+        $usedFile = trim((string)file_get_contents($copyFile));
+        $this->assertStringStartsWith('.fwknop.pass.', basename($usedFile));
+        $this->assertNotSame($passFile, $usedFile);
+        $this->assertFileDoesNotExist($usedFile);
+        $this->assertSame('stale', file_get_contents($passFile));
     }
 
     public function testExecuteSuccessAddsMessage(): void
@@ -386,7 +493,8 @@ class KnockServiceTest extends TestCase
 
         // Create a shell script that copies the pass file before it's deleted
         $script = $this->tmpDir . '/copy_pass.sh';
-        file_put_contents($script, "#!/bin/sh\ncp '$passFile' '$copyFile'\n");
+        // fwknop is called as "<cli> -G <passfile> -D <target>"
+        file_put_contents($script, "#!/bin/sh\ncp \"\$2\" '$copyFile'\nstat -c %a \"\$2\" > '$copyFile.mode' 2>/dev/null || stat -f %Lp \"\$2\" > '$copyFile.mode'\n");
         chmod($script, 0755);
 
         $svc = new KnockService(
@@ -408,7 +516,8 @@ class KnockServiceTest extends TestCase
         $copyFile = $this->tmpDir . '/.pass_copy';
 
         $script = $this->tmpDir . '/copy_pass.sh';
-        file_put_contents($script, "#!/bin/sh\ncp '$passFile' '$copyFile'\n");
+        // fwknop is called as "<cli> -G <passfile> -D <target>"
+        file_put_contents($script, "#!/bin/sh\ncp \"\$2\" '$copyFile'\nstat -c %a \"\$2\" > '$copyFile.mode' 2>/dev/null || stat -f %Lp \"\$2\" > '$copyFile.mode'\n");
         chmod($script, 0755);
 
         $svc = new KnockService($script, $this->tmpDir, $passFile);
@@ -418,6 +527,7 @@ class KnockServiceTest extends TestCase
 
         $this->assertFileExists($copyFile);
         $this->assertSame('127.0.0.1:mykey', file_get_contents($copyFile));
+        $this->assertSame('600', trim((string)file_get_contents($copyFile . '.mode')));
     }
 
     public function testExecuteGpgModeIgnoresHmacKey(): void
@@ -426,7 +536,8 @@ class KnockServiceTest extends TestCase
         $copyFile = $this->tmpDir . '/.pass_copy';
 
         $script = $this->tmpDir . '/copy_pass.sh';
-        file_put_contents($script, "#!/bin/sh\ncp '$passFile' '$copyFile'\n");
+        // fwknop is called as "<cli> -G <passfile> -D <target>"
+        file_put_contents($script, "#!/bin/sh\ncp \"\$2\" '$copyFile'\nstat -c %a \"\$2\" > '$copyFile.mode' 2>/dev/null || stat -f %Lp \"\$2\" > '$copyFile.mode'\n");
         chmod($script, 0755);
 
         $svc = new KnockService(

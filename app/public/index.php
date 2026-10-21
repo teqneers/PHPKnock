@@ -72,6 +72,9 @@ $HMAC_DIGEST_TYPE    = ($v = getenv('PHPKNOCK_HMAC_DIGEST_TYPE')) !== false ? $v
 $GPG_RECIPIENT_KEY   = ($v = getenv('PHPKNOCK_GPG_RECIPIENT_KEY')) !== false ? $v : null;
 $GPG_SIGNER_KEY      = ($v = getenv('PHPKNOCK_GPG_SIGNER_KEY')) !== false ? $v : null;
 $GPG_HOME_DIR        = ($v = getenv('PHPKNOCK_GPG_HOME_DIR')) !== false ? $v : null;
+$TRUSTED_PROXIES     = ($v = getenv('PHPKNOCK_TRUSTED_PROXIES')) !== false ?
+    array_values(array_filter(array_map('trim', explode(',', $v)))) : [];
+$URL_DOMAIN          = ($v = getenv('PHPKNOCK_URL_DOMAIN')) !== false ? $v : null;
 
 // local_config.php is optional — overrides any value set above
 $pathLocalConfig = __DIR__ . '/../local_config.php';
@@ -98,7 +101,9 @@ if ($USE_HTTPS_ONLY || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'))
     $URL_SCHEME = 'http';
 }
 if (empty($URL_DOMAIN)) {
-    $URL_DOMAIN = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : die('Unknown URL.');
+    // the Host header is client-controlled, so only accept well-formed values
+    $URL_DOMAIN = !empty($_SERVER['HTTP_HOST']) && KnockService::isValidHttpHost($_SERVER['HTTP_HOST'])
+        ? $_SERVER['HTTP_HOST'] : die('Unknown URL.');
 } // if
 $URL = $URL_SCHEME . '://' . $URL_DOMAIN . $PATH_APPLICATION;
 
@@ -145,52 +150,22 @@ if (!CLI_CALL && empty($_SESSION['csrf_token'])) {
 #############################################################################
 ###	FUNCTIONS
 #############################################################################
-// catch app interruption and clean-up password file
+// catch app interruption; exit() runs KnockService::__destruct() which removes the password file
 if (function_exists('pcntl_signal')) {
     declare(ticks=1);
     pcntl_signal(SIGINT, static function () {
-        if (file_exists(PATH_FS_PASSWORD)) {
-            unlink(PATH_FS_PASSWORD);
-        }
         exit(1);
     });
-} else {
-    class CleanUp
-    {
-        public function __destruct()
-        {
-            if (file_exists(PATH_FS_PASSWORD)) {
-                unlink(PATH_FS_PASSWORD);
-            }
-        }
-    }
-
-    $cleanup = new CleanUp();
 }
 
 /**
- * Returns the client's real IP address, checking proxy headers first.
+ * Returns the client's IP address; proxy headers are only trusted from $TRUSTED_PROXIES.
  */
 function clientIp(): string
 {
-    // X-Forwarded-For may contain a comma-separated list; the first entry is the original client
-    $forwarded = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null;
-    if ($forwarded !== null && $forwarded !== '') {
-        $ip = trim(explode(',', $forwarded)[0]);
-        if (filter_var($ip, FILTER_VALIDATE_IP) !== false) {
-            return $ip;
-        }
-    }
+    global $TRUSTED_PROXIES;
 
-    $realIp = $_SERVER['HTTP_X_REAL_IP'] ?? null;
-    if ($realIp !== null && $realIp !== '') {
-        $realIp = trim($realIp);
-        if (filter_var($realIp, FILTER_VALIDATE_IP) !== false) {
-            return $realIp;
-        }
-    }
-
-    return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    return KnockService::clientIp($_SERVER, $TRUSTED_PROXIES);
 }
 
 /**

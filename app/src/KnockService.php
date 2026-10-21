@@ -34,6 +34,12 @@ class KnockService
 {
     public const VALID_HMAC_DIGEST_TYPES = ['md5', 'sha1', 'sha256', 'sha384', 'sha512'];
 
+    /**
+     * Password file of the currently running execute() call, removed on destruction
+     * in case the script gets interrupted.
+     */
+    private ?string $currentPasswordFile = null;
+
     public function __construct(
         private readonly string $fwknopCli,
         private readonly string $tmpPath,
@@ -46,6 +52,11 @@ class KnockService
         private readonly ?string $gpgSignerKey = null,
         private readonly ?string $gpgHomeDir = null,
     ) {
+    }
+
+    public function __destruct()
+    {
+        $this->removePasswordFile();
     }
 
     public static function isValidHmacDigestType(string $type): bool
@@ -66,12 +77,117 @@ class KnockService
         $line = sprintf(
             "[%s] remote=%s allow=%s dst=%s result=%s\n",
             date('c'),
-            $remoteIp,
-            $allowIp,
-            $destination,
-            $result,
+            self::escapeLogValue($remoteIp),
+            self::escapeLogValue($allowIp),
+            self::escapeLogValue($destination),
+            self::escapeLogValue($result),
         );
         @file_put_contents($this->auditLogPath, $line, FILE_APPEND | LOCK_EX);
+    }
+
+    /**
+     * Escapes control characters (e.g. newlines) so a value cannot forge additional log lines.
+     */
+    private static function escapeLogValue(string $value): string
+    {
+        return addcslashes($value, "\0..\37\177\\");
+    }
+
+    /**
+     * Returns the client's IP address.
+     *
+     * Proxy headers (X-Forwarded-For, X-Real-IP) are only honoured when the direct peer
+     * (REMOTE_ADDR) is one of the trusted proxies; otherwise any client could spoof them.
+     *
+     * @param array<mixed>  $server          Usually $_SERVER
+     * @param array<string> $trustedProxies  IP addresses or CIDR ranges
+     */
+    public static function clientIp(array $server, array $trustedProxies): string
+    {
+        $remoteAddr = is_string($server['REMOTE_ADDR'] ?? null) ? $server['REMOTE_ADDR'] : '0.0.0.0';
+        if (!self::isTrustedProxy($remoteAddr, $trustedProxies)) {
+            return $remoteAddr;
+        }
+
+        // X-Forwarded-For: walk from the right (closest hop) and return the first untrusted address
+        $forwarded = $server['HTTP_X_FORWARDED_FOR'] ?? null;
+        if (is_string($forwarded) && $forwarded !== '') {
+            $hops = array_reverse(array_map('trim', explode(',', $forwarded)));
+            $last = null;
+            foreach ($hops as $hop) {
+                if (filter_var($hop, FILTER_VALIDATE_IP) === false) {
+                    break;
+                }
+                $last = $hop;
+                if (!self::isTrustedProxy($hop, $trustedProxies)) {
+                    return $hop;
+                }
+            }
+            if ($last !== null) {
+                return $last;
+            }
+        }
+
+        $realIp = $server['HTTP_X_REAL_IP'] ?? null;
+        if (is_string($realIp) && filter_var(trim($realIp), FILTER_VALIDATE_IP) !== false) {
+            return trim($realIp);
+        }
+
+        return $remoteAddr;
+    }
+
+    /**
+     * Returns true when $ip matches one of the given IP addresses or CIDR ranges.
+     *
+     * @param array<string> $trustedProxies
+     */
+    public static function isTrustedProxy(string $ip, array $trustedProxies): bool
+    {
+        $ipBin = @inet_pton($ip);
+        if ($ipBin === false) {
+            return false;
+        }
+        foreach ($trustedProxies as $proxy) {
+            $parts  = explode('/', $proxy, 2);
+            $netBin = @inet_pton(trim($parts[0]));
+            if ($netBin === false || strlen($netBin) !== strlen($ipBin)) {
+                continue;
+            }
+            $bits = isset($parts[1]) ? (int)$parts[1] : strlen($netBin) * 8;
+            if ($bits < 0 || $bits > strlen($netBin) * 8) {
+                continue;
+            }
+            $bytes = intdiv($bits, 8);
+            if (substr($ipBin, 0, $bytes) !== substr($netBin, 0, $bytes)) {
+                continue;
+            }
+            $rest = $bits % 8;
+            if ($rest === 0) {
+                return true;
+            }
+            $mask = (0xFF << (8 - $rest)) & 0xFF;
+            if ((ord($ipBin[$bytes]) & $mask) === (ord($netBin[$bytes]) & $mask)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true when $httpHost is a valid "host" or "host:port" value (IPv6 in brackets).
+     */
+    public static function isValidHttpHost(string $httpHost): bool
+    {
+        if (!preg_match('/^(?:\[(?P<ipv6>[0-9a-fA-F:.]+)\]|(?P<host>[^:\[\]]+))(?::(?P<port>\d{1,5}))?$/', $httpHost, $m)) {
+            return false;
+        }
+        if ((int)($m['port'] ?? 0) > 65535) {
+            return false;
+        }
+        if (($m['ipv6'] ?? '') !== '') {
+            return filter_var($m['ipv6'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false;
+        }
+        return self::isValidHost($m['host'] ?? '');
     }
 
     /**
@@ -128,9 +244,8 @@ class KnockService
                 } elseif (isset($configDestination[$keyStr])) {
                     // String key: the key itself is the hostname, value is just a label
                     $hosts[] = $keyStr;
-                } else {
-                    $hosts[] = $keyStr;
                 }
+                // anything else was not offered in the dropdown and is ignored
             }
             return $hosts;
         }
@@ -216,8 +331,6 @@ class KnockService
             $execute['verbose'] = '--verbose';
         }
 
-        $execute['G'] = '-G ' . escapeshellarg(escapeshellcmd($this->passwordFilePath));
-
         if ($configServerPort !== null) {
             $execute['server-port'] = '--server-port ' . $configServerPort;
         } elseif ($formServerPort !== null && $formServerPort !== '') {
@@ -258,8 +371,8 @@ class KnockService
     /**
      * Executes fwknop for a single target host.
      *
-     * Writes the encryption key to the password file, runs proc_open with
-     * the fwknop CLI, collects output, and adds success/error messages.
+     * Writes the encryption key to a unique password file (mode 0600), runs proc_open
+     * with the fwknop CLI, collects output, and adds success/error messages.
      * The password file is always deleted after execution.
      *
      * @param string               $target         Destination host (IP or hostname)
@@ -290,11 +403,24 @@ class KnockService
         if ($hmacKey !== null && $this->encryptionMode === 'rijndael') {
             $passContent .= ':' . $hmacKey;
         }
-        file_put_contents($this->passwordFilePath, $passContent);
-        chmod($this->passwordFilePath, 0600);
+        // tempnam() atomically creates a unique file with mode 0600, so concurrent
+        // requests never share or overwrite each other's keys
+        $passwordFile = tempnam(dirname($this->passwordFilePath), basename($this->passwordFilePath) . '.');
+        if ($passwordFile === false || realpath(dirname($passwordFile)) !== realpath(dirname($this->passwordFilePath))) {
+            if ($passwordFile !== false) {
+                unlink($passwordFile);
+            }
+            $message->addError('Unable to create password file.');
+            $this->auditLog($sourceIp, $allowIp, $target, 'fail');
+            return;
+        }
+        $this->currentPasswordFile = $passwordFile;
 
         try {
+            file_put_contents($passwordFile, $passContent);
+
             $command = $baseCommand;
+            $command['G'] = '-G ' . escapeshellarg($passwordFile);
             $command['D'] = '-D ' . escapeshellarg(escapeshellcmd($target));
 
             $cmd = implode(' ', $command) . ' 2>&1';
@@ -363,9 +489,15 @@ class KnockService
                 }
             }
         } finally {
-            if (file_exists($this->passwordFilePath)) {
-                unlink($this->passwordFilePath);
-            }
+            $this->removePasswordFile();
         }
+    }
+
+    private function removePasswordFile(): void
+    {
+        if ($this->currentPasswordFile !== null && file_exists($this->currentPasswordFile)) {
+            unlink($this->currentPasswordFile);
+        }
+        $this->currentPasswordFile = null;
     }
 }

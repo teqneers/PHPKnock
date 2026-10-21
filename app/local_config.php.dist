@@ -139,6 +139,28 @@ $GPG_HOME_DIR = null;
 
 
 /**
+ * Reverse proxies whose X-Forwarded-For / X-Real-IP headers are trusted.
+ *
+ * List of IP addresses or CIDR ranges, e.g. ['127.0.0.1', '172.16.0.0/12'].
+ * Only set this when PHPKnock runs behind a reverse proxy. With an empty list
+ * the proxy headers are ignored, because any client could forge them.
+ *
+ * Default: []
+ */
+$TRUSTED_PROXIES = [];
+
+
+/**
+ * Public host name (optionally with port) used for HTTPS redirects.
+ *
+ * Set to null to use the request's Host header (validated).
+ *
+ * Default: null
+ */
+$URL_DOMAIN = null;
+
+
+/**
  * Destination server(s) to knock.
  *
  * null        — user types a free-form IP address or hostname.

@@ -229,6 +229,14 @@ class Dropdown extends Element
             $this->setError('EMPTY VALUE');
         }
 
+        // only values which have been offered as options are allowed
+        foreach ((array)$this->_value as $v) {
+            if (is_scalar($v) && !array_key_exists((string)$v, $this->_options)) {
+                $this->setError('INVALID VALUE');
+                break;
+            }
+        }
+
         $this->_isValidated = true;
         return !$this->error();
     }

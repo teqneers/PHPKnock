@@ -4,6 +4,7 @@ app/error.log
 
 # User configuration
 app/local_config.php
+docker/.env
 
 # Composer dependencies
 app/vendor/

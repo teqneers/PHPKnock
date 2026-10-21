@@ -95,6 +95,8 @@ No config file is required. All settings are controlled via environment variable
 | `PHPKNOCK_GPG_RECIPIENT_KEY` | _(none)_ | Server's GPG key ID (required for GPG mode) |
 | `PHPKNOCK_GPG_SIGNER_KEY` | _(none)_ | Client's GPG key ID (required for GPG mode) |
 | `PHPKNOCK_GPG_HOME_DIR` | _(none)_ | GPG keyring path; omit to use system default |
+| `PHPKNOCK_TRUSTED_PROXIES` | _(none)_ | Comma-separated IPs/CIDR ranges of reverse proxies whose `X-Forwarded-For`/`X-Real-IP` headers are trusted; without it these headers are ignored |
+| `PHPKNOCK_URL_DOMAIN` | _(none)_ | Public host name used for HTTPS redirects; omit to use the (validated) request `Host` header |
 
 ### Option B — Traditional web server
 

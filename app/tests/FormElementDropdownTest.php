@@ -37,6 +37,23 @@ class FormElementDropdownTest extends TestCase
         $this->assertFalse($el->validate());
     }
 
+    public function testValidateRejectsValueNotInOptions(): void
+    {
+        $el = new ElementDropdown('country', 'Country', $this->options);
+        $el->setIsMultiple();
+        $el->setValue(['de', 'attacker.example.com']);
+
+        $this->assertFalse($el->validate());
+    }
+
+    public function testValidateAcceptsNumericKeys(): void
+    {
+        $el = new ElementDropdown('server', 'Server', ['a.example.com', 'b.example.com']);
+        $el->setValue('1');
+
+        $this->assertTrue($el->validate());
+    }
+
     public function testNotNullPassesWithValue(): void
     {
         $el = new ElementDropdown('country', 'Country', $this->options);
