@@ -53,4 +53,4 @@ jobs:
           push: true
           pull: true
           set: |
-            default.tags=${{ steps.meta.outputs.tags }}
+            default.tags=${{ join(fromJSON(steps.meta.outputs.json).tags, ',') }}
