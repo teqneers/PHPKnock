@@ -29,3 +29,10 @@ target "default" {
     tags       = ["${IMAGE_NAME}:${IMAGE_TAG}", "${IMAGE_NAME}:${IMAGE_TAG_LATEST}"]
     cache-from = ["${IMAGE_NAME}:${IMAGE_TAG_LATEST}"]
 }
+
+# filled by docker/metadata-action in CI (tags, labels); empty for local builds
+target "docker-metadata-action" {}
+
+target "release" {
+    inherits = ["default", "docker-metadata-action"]
+}

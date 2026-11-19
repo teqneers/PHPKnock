@@ -48,9 +48,9 @@ jobs:
 
       - uses: docker/bake-action@v7
         with:
-          files: docker/docker-bake.hcl
-          targets: default
+          files: |
+            docker/docker-bake.hcl
+            cwd://${{ steps.meta.outputs.bake-file }}
+          targets: release
           push: true
           pull: true
-          set: |
-            default.tags=${{ join(fromJSON(steps.meta.outputs.json).tags, ',') }}

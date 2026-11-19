@@ -148,7 +148,7 @@ docker buildx bake
 
 To override the image tag:
 ```bash
-docker buildx bake --set 'default.tags=ghcr.io/teqneers/phpknock:0.3.2'
+docker buildx bake --set 'default.tags=ghcr.io/teqneers/phpknock:0.3.3'
 ```
 
 ### Tests and static analysis
